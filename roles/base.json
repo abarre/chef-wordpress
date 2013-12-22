@@ -1,0 +1,19 @@
+{
+  "name": "base_machine",
+  "chef_type": "role",
+  "json_class": "Chef::Role",
+  "description": "The base role for an ubuntu server",
+  "default_attributes": {
+    "ubuntu" : {
+	    "mirror_site_url": "mirror://mirrors.ubuntu.com/mirrors.txt",
+      "version": "12.04"    
+	  },
+    "build_essential": {
+      "compiletime" : true
+    }
+  },
+  "run_list": [
+    "recipe[apt]",
+    "recipe[build-essential]"
+  ]
+}

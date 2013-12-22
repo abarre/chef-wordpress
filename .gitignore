@@ -1,0 +1,5 @@
+/cookbooks/*
+/data_bags/*
+.vagrant
+.chef
+/tmp

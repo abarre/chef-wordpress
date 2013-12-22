@@ -10,12 +10,12 @@ vagrant 3+
 
 ##installation
 
-vagrant plugin : 
+vagrant plugin :
 - vagrant-digitalocean
 - vagrant-librarian-chef
 - vagrant-omnibus (for chef)
 
-- add the password in the data_bags : 
+- add the password in the data_bags :
 ```
 knife solo data bag show pass lovelycarte
 ```
@@ -33,6 +33,8 @@ knife solo data bag show pass lovelycarte
 ```
 bundle
 librarian-chef install
+
+vagrant box add precise64 http://files.vagrantup.com/precise64.box
 
 vagrant up
 vagrant up --provider=digital_ocean

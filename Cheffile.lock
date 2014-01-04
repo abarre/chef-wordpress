@@ -1,7 +1,6 @@
 SITE
   remote: http://community.opscode.com/api/v1
   specs:
-    apache2 (1.8.14)
     apt (2.3.4)
     aws (1.0.0)
     bluepill (2.3.1)
@@ -59,7 +58,6 @@ GIT
       php-fpm (>= 0.0.0)
 
 DEPENDENCIES
-  apache2 (= 1.8.14)
   build-essential (>= 0)
   chef-solo-search (>= 0)
   database (>= 0)

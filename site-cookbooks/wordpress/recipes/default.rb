@@ -20,13 +20,6 @@ end
 execute "apt-get update"
 
 
-# include_recipe "apache2"
-# include_recipe "apache2::mod_php5"
-# include_recipe "apache2::mod_deflate"
-# include_recipe "apache2::mod_expires"
-# include_recipe "apache2::mod_headers"
-# include_recipe "apache2::mod_rewrite"
-# include_recipe "apache2::mod_pagespeed"
 include_recipe "nginx::source"
 include_recipe "mysql::server"
 include_recipe "php"
@@ -37,14 +30,6 @@ include_recipe "php-fpm"
 include_recipe "database::mysql"
 
 php_fpm_pool "www"
-
-# directory "/var/cache/mod_pagespeed" do
-#   owner "www-data"
-#   group "www-data"
-#   mode "0755"
-#   action :create
-#   recursive true
-# end
 
 mysql_password = node['wordpress']['db_password'] || secure_password
 
@@ -93,12 +78,6 @@ template node['wordpress']['path'] + '/wp-config.php' do
     :nonce_salt       => node['wordpress']['salt']['nonce']
   )
 end
-
-# web_app 'wordpress' do
-#   template 'site.conf.erb'
-#   docroot node['wordpress']['path']
-#   server_name node['wordpress']['server_name']
-# end
 
 wordpress_nginx_site 'wordpress' do
   host node['wordpress']['server_name']

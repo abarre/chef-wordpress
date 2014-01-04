@@ -4,6 +4,9 @@
     "server_repl_password": "iloverandompasswordsbutthiswilldo",
     "server_debian_password": "iloverandompasswordsbutthiswilldo"
   },
+  "nginx": {
+  	"version" : "1.4.4"
+  },
   "run_list": [
     "role[base]",
   	"recipe[lovelycarte-app]"

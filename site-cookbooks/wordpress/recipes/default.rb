@@ -14,7 +14,7 @@
 # include_recipe "apache2::mod_headers"
 # include_recipe "apache2::mod_rewrite"
 # include_recipe "apache2::mod_pagespeed"
-include_recipe "nginx"
+include_recipe "nginx::source"
 include_recipe "mysql::server"
 include_recipe "php"
 include_recipe "php::module_mysql"

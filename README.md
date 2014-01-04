@@ -17,14 +17,14 @@ vagrant plugin :
 
 - add the password in the data_bags :
 ```
-knife solo data bag show pass lovelycarte
+knife solo data bag create pass lovelycarte
 ```
 
 ```json
 {
 	"id":"lovelycarte",
 	"server":"PASS",
-  	"mysql":"PASS"
+  "mysql":"PASS"
 }
 ```
 

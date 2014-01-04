@@ -7,27 +7,31 @@
 # All rights reserved - Do Not Redistribute
 #
 
-include_recipe "apache2"
-include_recipe "apache2::mod_php5"
-include_recipe "apache2::mod_deflate"
-include_recipe "apache2::mod_expires"
-include_recipe "apache2::mod_headers"
-include_recipe "apache2::mod_rewrite"
-include_recipe "apache2::mod_pagespeed"
+# include_recipe "apache2"
+# include_recipe "apache2::mod_php5"
+# include_recipe "apache2::mod_deflate"
+# include_recipe "apache2::mod_expires"
+# include_recipe "apache2::mod_headers"
+# include_recipe "apache2::mod_rewrite"
+# include_recipe "apache2::mod_pagespeed"
+include_recipe "nginx"
 include_recipe "mysql::server"
 include_recipe "php"
 include_recipe "php::module_mysql"
 include_recipe "php::module_gd"
 include_recipe "php::module_apc"
+include_recipe "php-fpm"
 include_recipe "database::mysql"
 
-directory "/var/cache/mod_pagespeed" do
-  owner "www-data"
-  group "www-data"
-  mode "0755"
-  action :create
-  recursive true
-end
+php_fpm_pool "www"
+
+# directory "/var/cache/mod_pagespeed" do
+#   owner "www-data"
+#   group "www-data"
+#   mode "0755"
+#   action :create
+#   recursive true
+# end
 
 mysql_password = node['wordpress']['db_password'] || secure_password
 
@@ -60,7 +64,7 @@ template node['wordpress']['path'] + '/wp-config.php' do
   source 'wp-config.php.erb'
   mode 0755
   owner 'root'
-  group 'root' 
+  group 'root'
   variables(
     :database        => node['wordpress']['database'],
     :user            => node['wordpress']['db_username'],
@@ -77,8 +81,13 @@ template node['wordpress']['path'] + '/wp-config.php' do
   )
 end
 
-web_app 'wordpress' do
-  template 'site.conf.erb'
-  docroot node['wordpress']['path']
-  server_name node['wordpress']['server_name']
+# web_app 'wordpress' do
+#   template 'site.conf.erb'
+#   docroot node['wordpress']['path']
+#   server_name node['wordpress']['server_name']
+# end
+
+wordpress_nginx_site 'wordpress' do
+  host node['wordpress']['server_name']
+  root node['wordpress']['path']
 end

@@ -7,6 +7,19 @@
 # All rights reserved - Do Not Redistribute
 #
 
+# Configure Ondrej's PPA for php5
+apt_repository "php5" do
+  uri "http://ppa.launchpad.net/ondrej/php5/ubuntu/"
+  distribution node['lsb']['codename']
+  components ["main"]
+  keyserver "keyserver.ubuntu.com"
+  key "E5267A6C"
+  action :add
+end
+
+execute "apt-get update"
+
+
 # include_recipe "apache2"
 # include_recipe "apache2::mod_php5"
 # include_recipe "apache2::mod_deflate"

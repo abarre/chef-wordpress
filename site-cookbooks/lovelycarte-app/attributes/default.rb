@@ -1,4 +1,5 @@
+default['wordpress']['nginx_conf_name'] = "lovelycarte"
 default['wordpress']['database'] = "lovelycarte"
 default['wordpress']['db_username'] = "lovelycarte"
 default['wordpress']['path'] = "/var/www/lovelycarte"
-default['wordpress']['server_name'] = "lovelycarte.com"
+default['wordpress']['server_name'] = "*.lovelycarte.com lovelycarte.com"

@@ -24,7 +24,19 @@ knife solo data bag create pass lovelycarte
 {
 	"id":"lovelycarte",
 	"server":"PASS",
-  "mysql":"PASS"
+  	"mysql":"PASS"
+}
+```
+
+```
+knife solo data bag create certificate lovelycarte
+```
+
+```json
+{
+	"id":"lovelycarte",
+	"cert":"CERT",
+	"key":""
 }
 ```
 

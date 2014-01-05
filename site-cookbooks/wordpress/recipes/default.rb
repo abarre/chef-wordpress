@@ -79,7 +79,8 @@ template node['wordpress']['path'] + '/wp-config.php' do
   )
 end
 
-wordpress_nginx_site 'wordpress' do
+wordpress_nginx_site node['wordpress']['nginx_conf_name'] do
   host node['wordpress']['server_name']
   root node['wordpress']['path']
+  code node['wordpress']['nginx_conf_code']
 end

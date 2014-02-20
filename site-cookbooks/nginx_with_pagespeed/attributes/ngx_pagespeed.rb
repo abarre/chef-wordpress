@@ -19,6 +19,9 @@
 # limitations under the License.
 #
 
+default['nginx']['version'] = '1.4.4'
+default['nginx']['source']['modules'] = node['nginx']['source']['modules'] | ["nginx_with_pagespeed"]
+
 default['nginx']['ngx_pagespeed']['version']  = "1.7.30.1-beta"
 default['nginx']['ngx_pagespeed']['url']      = "https://github.com/pagespeed/ngx_pagespeed/archive/v#{node['nginx']['ngx_pagespeed']['version']}.tar.gz"
 default['nginx']['ngx_pagespeed']['src']['cookbook'] = "nginx"

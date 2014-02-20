@@ -19,7 +19,6 @@ end
 
 execute "apt-get update"
 
-
 include_recipe "nginx::source"
 include_recipe "mysql::server"
 include_recipe "php"
@@ -28,6 +27,19 @@ include_recipe "php::module_gd"
 include_recipe "php::module_apc"
 include_recipe "php-fpm"
 include_recipe "database::mysql"
+include_recipe "newrelic::php-agent"
+
+monitrc "nginx" do
+  template_cookbook "wordpress"
+end
+
+monitrc "mysql" do
+  template_cookbook "wordpress"
+end
+
+monitrc "php-fpm" do
+  template_cookbook "wordpress"
+end
 
 php_fpm_pool "www"
 

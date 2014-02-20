@@ -48,6 +48,15 @@ mysql_database_user node['wordpress']['db_username'] do
   action :grant
 end
 
+chef_gem "chef-rewind"
+require 'chef/rewind'
+
+rewind :template => "/etc/mysql/my.cnf" do
+  source "mysql-my.cnf"
+  cookbook_name "wordpress"
+end
+
+
 # API keys & salt for wp-config
 node.set_unless['wordpress']['keys']['auth']         = secure_password
 node.set_unless['wordpress']['keys']['secure_auth']  = secure_password

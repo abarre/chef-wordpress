@@ -1,0 +1,11 @@
+check system lovelycarte.com
+  if loadavg (1min) > 6.0  for 5 cycles then alert
+  if loadavg (5min) > 4.8  for 5 cycles then alert
+  if memory usage > 85%  for 5 cycles then alert
+  if swap usage > 25%  for 5 cycles then alert
+  if cpu usage (user) > 80%  for 5 cycles then alert
+  if cpu usage (system) > 80%  for 5 cycles then alert
+
+check device sda1 with path /dev/vda
+if space usage > 85% then alert
+group system

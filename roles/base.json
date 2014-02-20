@@ -6,7 +6,7 @@
   "default_attributes": {
     "ubuntu" : {
 	    "mirror_site_url": "mirror://mirrors.ubuntu.com/mirrors.txt",
-      "version": "12.04"    
+      "version": "12.04"
 	  },
     "build_essential": {
       "compiletime" : true
@@ -14,6 +14,8 @@
   },
   "run_list": [
     "recipe[apt]",
-    "recipe[build-essential]"
+    "recipe[build-essential]",
+    "recipe[timezone]",
+    "recipe[base]"
   ]
 }

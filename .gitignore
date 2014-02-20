@@ -4,3 +4,4 @@
 .chef
 /tmp
 /cookbooks/
+/site-cookbooks/credential/attributes/default.rb

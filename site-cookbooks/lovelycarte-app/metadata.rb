@@ -7,3 +7,4 @@ version          '0.1.0'
 
 depends "wordpress"
 depends "chef-solo-search"
+depends "credential"

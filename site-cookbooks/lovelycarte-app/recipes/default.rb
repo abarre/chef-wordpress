@@ -3,9 +3,7 @@ package "sshpass"
 lovely_pass = search(:pass, "id:lovelycarte").first
 lovely_cert = search(:certificate, "id:lovelycarte").first
 
-execute 'export database' do
-  command "sshpass -p #{lovely_pass[:server]} ssh -oStrictHostKeyChecking=no anthonybarre@direct.preparer-son-mariage.fr -p 1337 'mysqldump -u root --password=#{lovely_pass[:mysql]} lovelycarte' > /tmp/wordpress.sql"
-end
+import_lovelycarte = false
 
 directory node["wordpress"]["path"] do
   owner "root"
@@ -17,9 +15,18 @@ end
 
 log "copying the lovelycarte folder from the older server, it takes around 5 min the first time"
 
-execute 'copy the lovelycarte directory' do
-  command "rsync -av --rsh='sshpass -p #{lovely_pass[:server]} ssh -p 1337 -oStrictHostKeyChecking=no  -l anthonybarre' direct.preparer-son-mariage.fr:~/www/lovelycarte/* #{node['wordpress']['path']}"
+if import_lovelycarte
+  pp node[:backup][:ip]
+  execute 'copy the lovelycarte directory' do
+    command "rsync -av --rsh='ssh -oStrictHostKeyChecking=no  -l root' #{node[:backup][:ip]}:/var/www/lovelycarte/* #{node['wordpress']['path']}"
+  end
+
+  execute 'export database' do
+    command "ssh -oStrictHostKeyChecking=no root@#{node[:backup][:ip]} 'mysqldump -u root --password=#{node['mysql']['server_root_password']} lovelycarte' > /tmp/wordpress.sql"
+  end
 end
+
+include_recipe "wordpress"
 
 lovelycarte_ssl_cert_chain_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com_chain.pem"
 lovelycarte_ssl_cert_key_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com.key"
@@ -45,13 +52,16 @@ node.default["wordpress"]["nginx_conf_code"] = """
   listen 443 ssl;
   ssl_certificate #{lovelycarte_ssl_cert_chain_path};
   ssl_certificate_key #{lovelycarte_ssl_cert_key_path};
+
+  rewrite ^/sitemap_index\.xml$ /index.php?sitemap=1 last;
+  rewrite ^/([^/]+?)-sitemap([0-9]+)?\.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
 """
 
-include_recipe "wordpress"
-
-# query a database from a sql script on disk
-mysql_database node['wordpress']['db_username'] do
-  connection :host => 'localhost', :username => 'root', :password => node['mysql']['server_root_password']
-  sql { ::File.open("/tmp/wordpress.sql").read }
-  action :query
+if import_lovelycarte
+  # restore the backup
+  mysql_database node['wordpress']['db_username'] do
+    connection :host => 'localhost', :username => 'root', :password => node['mysql']['server_root_password']
+    sql { ::File.open("/tmp/wordpress.sql").read }
+    action :query
+  end
 end

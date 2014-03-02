@@ -40,18 +40,6 @@ knife solo data bag create certificate lovelycarte
 }
 ```
 
-```
-knife solo data bag create newrelic lovelycarte
-```
-
-```json
-{
-	"id":"lovelycarte",
-	"cert":"CERT",
-	"key":""
-}
-```
-
 Credential file : create a file `default.rb` in `site-cookbooks/credential/attributes` that contains the following informations :
 
 ```ruby

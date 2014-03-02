@@ -49,7 +49,7 @@ mysql_connection_info = {:host => 'localhost', :username => 'root', :password =>
 
 mysql_database node['wordpress']['database'] do
   connection mysql_connection_info
-  action [:drop, :create]
+  action [:create]
 end
 
 mysql_database_user node['wordpress']['db_username'] do

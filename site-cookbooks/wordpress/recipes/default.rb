@@ -82,7 +82,7 @@ node.set_unless['wordpress']['salt']['nonce']       = secure_password
 template node['wordpress']['path'] + '/wp-config.php' do
   source 'wp-config.php.erb'
   mode 0755
-  owner 'root'
+  owner 'www-data'
   group 'root'
   variables(
     :database        => node['wordpress']['database'],

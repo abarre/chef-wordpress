@@ -26,10 +26,20 @@ if import_lovelycarte
   end
 end
 
-include_recipe "wordpress"
-
 lovelycarte_ssl_cert_chain_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com_chain.pem"
 lovelycarte_ssl_cert_key_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com.key"
+
+node.default["wordpress"]["nginx_conf_code"] = """
+  listen 443 ssl;
+  ssl_certificate #{lovelycarte_ssl_cert_chain_path};
+  ssl_certificate_key #{lovelycarte_ssl_cert_key_path};
+
+  rewrite ^/sitemap_index\.xml$ /index.php?sitemap=1 last;
+  rewrite ^/([^/]+?)-sitemap([0-9]+)?\.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
+"""
+
+include_recipe "wordpress"
+
 
 #manage ssl on lovelycarte.com
 file lovelycarte_ssl_cert_chain_path do
@@ -47,15 +57,6 @@ file lovelycarte_ssl_cert_key_path do
   content lovely_cert[:key]
   action :create
 end
-
-node.default["wordpress"]["nginx_conf_code"] = """
-  listen 443 ssl;
-  ssl_certificate #{lovelycarte_ssl_cert_chain_path};
-  ssl_certificate_key #{lovelycarte_ssl_cert_key_path};
-
-  rewrite ^/sitemap_index\.xml$ /index.php?sitemap=1 last;
-  rewrite ^/([^/]+?)-sitemap([0-9]+)?\.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
-"""
 
 if import_lovelycarte
   # restore the backup

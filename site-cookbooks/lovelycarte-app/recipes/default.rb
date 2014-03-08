@@ -5,7 +5,7 @@ lovely_cert = search(:certificate, "id:lovelycarte").first
 
 import_lovelycarte = false
 
-directory node["wordpress"]["path"] do
+directory node["lovelycarte"]["path"] do
   owner "root"
   group "root"
   mode "0755"
@@ -16,9 +16,8 @@ end
 log "copying the lovelycarte folder from the older server, it takes around 5 min the first time"
 
 if import_lovelycarte
-  pp node[:backup][:ip]
   execute 'copy the lovelycarte directory' do
-    command "rsync -av --rsh='ssh -oStrictHostKeyChecking=no  -l root' #{node[:backup][:ip]}:/var/www/lovelycarte/* #{node['wordpress']['path']}"
+    command "rsync -av --rsh='ssh -oStrictHostKeyChecking=no  -l root' #{node[:backup][:ip]}:/var/www/lovelycarte/* #{node['lovelycarte']['path']}"
   end
 
   execute 'export database' do
@@ -29,7 +28,7 @@ end
 lovelycarte_ssl_cert_chain_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com_chain.pem"
 lovelycarte_ssl_cert_key_path = "#{node['nginx']['dir']}/conf.d/lovelycarte.com.key"
 
-node.default["wordpress"]["nginx_conf_code"] = """
+ssl_nginx_conf = """
   listen 443 ssl;
   ssl_certificate #{lovelycarte_ssl_cert_chain_path};
   ssl_certificate_key #{lovelycarte_ssl_cert_key_path};
@@ -38,8 +37,14 @@ node.default["wordpress"]["nginx_conf_code"] = """
   rewrite ^/([^/]+?)-sitemap([0-9]+)?\.xml$ /index.php?sitemap=$1&sitemap_n=$2 last;
 """
 
-include_recipe "wordpress"
-
+wordpress_site do
+  database node["lovelycarte"]["database"]
+  db_username node["lovelycarte"]["db_username"]
+  path node["lovelycarte"]["path"]
+  nginx_conf_name node["lovelycarte"]["nginx_conf_name"]
+  server_name node["lovelycarte"]["server_name"]
+  nginx_conf_code ssl_nginx_conf
+end
 
 #manage ssl on lovelycarte.com
 file lovelycarte_ssl_cert_chain_path do
@@ -60,7 +65,7 @@ end
 
 if import_lovelycarte
   # restore the backup
-  mysql_database node['wordpress']['db_username'] do
+  mysql_database node['lovelycarte']['db_username'] do
     connection :host => 'localhost', :username => 'root', :password => node['mysql']['server_root_password']
     sql { ::File.open("/tmp/wordpress.sql").read }
     action :query

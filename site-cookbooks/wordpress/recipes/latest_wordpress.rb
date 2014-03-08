@@ -19,4 +19,4 @@ execute "untar-wordpress" do
   creates node['wordpress']['path'] + "/wp-settings.php"
 end
 
-include_recipe "wordpress"
+wordpress_site

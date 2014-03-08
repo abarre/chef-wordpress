@@ -14,3 +14,4 @@ swap_file '/mnt/swap' do
 end
 
 package 'htop'
+package 'unzip'

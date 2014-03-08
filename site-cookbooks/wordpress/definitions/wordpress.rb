@@ -60,13 +60,13 @@ define :wordpress_site,
 	  action :grant
 	end
 
-	# chef_gem "chef-rewind"
-	# require 'chef/rewind'
+	chef_gem "chef-rewind"
+	require 'chef/rewind'
 
-	# rewind :template => "/etc/mysql/my.cnf" do
-	#   source "mysql-my.cnf"
-	#   cookbook_name "wordpress"
-	# end
+	rewind :template => "/etc/mysql/my.cnf" do
+	  source "mysql-my.cnf"
+	  cookbook_name "wordpress"
+	end
 
 	directory params[:path] do
 	  owner "root"

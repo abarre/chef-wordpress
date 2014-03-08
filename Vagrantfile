@@ -44,6 +44,10 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # end
   end
 
+  config.vm.define :lovelycarte_vb do |server|
+    server.vm.hostname = 'lovelycarte.com'
+  end
+
   config.vm.define :lovelycarte do |server|
     server.vm.hostname = 'lovelycarte.com'
 

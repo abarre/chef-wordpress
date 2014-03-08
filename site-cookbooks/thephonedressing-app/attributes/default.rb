@@ -1,0 +1,5 @@
+default['thephonedressing']['nginx_conf_name'] = "thephonedressing"
+default['thephonedressing']['database'] = "thephonedressing"
+default['thephonedressing']['db_username'] = "thephonedressing"
+default['thephonedressing']['path'] = "/var/www/thephonedressing"
+default['thephonedressing']['server_name'] = "thephonedressing.com"

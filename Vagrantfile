@@ -45,6 +45,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :lovelycarte_vb do |server|
+    server.vm.synced_folder "/Users/anthony/.ssh", "/root/.ssh",  owner: "root", group: "root"
     server.vm.hostname = 'lovelycarte.com'
   end
 

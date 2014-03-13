@@ -20,6 +20,6 @@ default[:monit][:mailserver][:password_suffix] = "using tlsv1 with timeout 30 se
 default[:ssmtp][:mailhub_name] = 'smtp.gmail.com'
 default[:ssmtp][:credential_method] = 'plain'
 default[:ssmtp][:auth_enabled] = true
-default[:ssmtp][:use_tls] = true
+default[:ssmtp][:use_tls] = false
 default[:ssmtp][:from_line_override] = true
 default[:ssmtp][:rewrite_domain] = false

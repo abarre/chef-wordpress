@@ -15,3 +15,4 @@ end
 
 package 'htop'
 package 'unzip'
+package 'curl'

@@ -21,7 +21,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Create a forwarded port mapping which allows access to a specific port
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
-  config.vm.network :forwarded_port, guest: 80, host: 8085
 
   VAGRANT_JSON = JSON.parse(Pathname(__FILE__).dirname.join('nodes', 'vagrant.json').read)
 
@@ -47,6 +46,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   config.vm.define :lovelycarte_vb do |server|
     server.vm.synced_folder "/Users/anthony/.ssh", "/root/.ssh",  owner: "root", group: "root"
     server.vm.hostname = 'lovelycarte.com'
+    server.vm.network :forwarded_port, guest: 80, host: 8085
   end
 
   config.vm.define :lovelycarte do |server|

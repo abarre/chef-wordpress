@@ -19,6 +19,7 @@ define :wordpress_site,
 
 	execute "apt-get update"
 
+	include_recipe "varnish_for_passenger"
 	include_recipe "nginx::source"
 	include_recipe "mysql::server"
 	include_recipe "php"
@@ -38,6 +39,10 @@ define :wordpress_site,
 	end
 
 	monitrc "php-fpm" do
+	  template_cookbook "wordpress"
+	end
+
+	monitrc "varnish" do
 	  template_cookbook "wordpress"
 	end
 

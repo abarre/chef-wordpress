@@ -1,0 +1,7 @@
+# Check varnish on port 80
+check process varnish with pidfile /var/run/varnishd.pid
+start program = "/etc/init.d/varnish start"
+stop program = "/etc/init.d/varnish stop"
+if failed host 127.0.0.1 port <%= node['varnish']['listen_port'] %> protocol http
+  and request "/monit-check"
+  then restart

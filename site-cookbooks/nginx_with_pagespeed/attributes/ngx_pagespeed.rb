@@ -35,3 +35,4 @@ default['nginx']['ngx_pagespeed']['psol']['src']['file'] = nil
 
 default['nginx']['ngx_pagespeed']['FileCachePath'] = "/tmp/ngx_pagespeed_cache"
 default['nginx']['ngx_pagespeed']['EnableFilters'] = "collapse_whitespace,combine_css,combine_javascript,remove_comments,move_css_above_scripts,move_css_to_head,convert_png_to_jpeg,convert_jpeg_to_webp"
+override['nginx']['client_max_body_size'] = "20m"

@@ -6,6 +6,7 @@ backend default {
 acl purge {
   "localhost";
   "127.0.0.1";
+  "188.226.171.191";
 }
 
 # Block 2: Define a key based on the User-Agent which can be used for hashing.
@@ -131,18 +132,18 @@ sub vcl_recv {
 	  }
 	}
 
+	# Check the admin pages
+	if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
+	  return (pass);
+	}
+
 	# Check the cookies for wordpress-specific cookies
 	if (req.http.cookie) {
-		if (req.http.cookie ~ "(wordpress_|wp-settings-|wp_|comment_)") {
+		if (req.http.cookie ~ "(wp_|comment_)") {
 		  return(pass);
 		} else {
 		  unset req.http.cookie;
 		}
-	}
-
-	# Check the admin pages
-	if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
-	  return (pass);
 	}
 
 	# Contact Pages

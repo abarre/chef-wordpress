@@ -96,5 +96,13 @@ template "#{node['nginx']['dir']}/conf.d/ngx_pagespeed.conf" do
   notifies :reload, "service[nginx]"
 end
 
+template "#{node['nginx']['dir']}/conf.d/custom_params.conf" do
+  source "modules/custom_params.conf.erb"
+  owner "root"
+  group "root"
+  mode 00644
+  notifies :reload, "service[nginx]"
+end
+
 node.run_state['nginx_configure_flags'] =
   node.run_state['nginx_configure_flags'] | ["--add-module=#{ngx_psol_extract_path}"]

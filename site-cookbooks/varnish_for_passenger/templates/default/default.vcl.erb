@@ -139,7 +139,7 @@ sub vcl_recv {
 
 	# Check the cookies for wordpress-specific cookies
 	if (req.http.cookie) {
-		if (req.http.cookie ~ "(wp_|comment_)") {
+		if (req.http.cookie ~ "(wp_|comment_|wordpress_logged_in)") {
 		  return(pass);
 		} else {
 		  unset req.http.cookie;

@@ -13,9 +13,8 @@ directory node["lovelycarte"]["path"] do
   recursive true
 end
 
-log "copying the lovelycarte folder from the older server, it takes around 5 min the first time"
-
 if import_lovelycarte
+  log "copying the lovelycarte folder from the older server, it takes around 5 min the first time"
   execute 'copy the lovelycarte directory' do
     command "rsync -av --rsh='ssh -oStrictHostKeyChecking=no  -l root' #{node[:backup][:ip]}:/var/www/lovelycarte/* #{node['lovelycarte']['path']}"
   end

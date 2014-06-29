@@ -23,7 +23,7 @@ end
 
 
 #manage ssl on thephonedressing.com
-file thephonedressing_ssl_cert_key_path do
+file thephonedressing_ssl_cert_chain_path do
   owner "root"
   group "root"
   mode "0644"
@@ -31,7 +31,7 @@ file thephonedressing_ssl_cert_key_path do
   action :create
 end
 
-file thephonedressing_ssl_cert_chain_path do
+file thephonedressing_ssl_cert_key_path do
   owner "root"
   group "root"
   mode "0644"

@@ -1,6 +1,5 @@
 package "sshpass"
 
-lovely_pass = search(:pass, "id:lovelycarte").first
 lovely_cert = search(:certificate, "id:lovelycarte").first
 
 import_lovelycarte = false

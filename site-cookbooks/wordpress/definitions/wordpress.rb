@@ -46,7 +46,9 @@ define :wordpress_site,
 	  template_cookbook "wordpress"
 	end
 
-	php_fpm_pool "www"
+	php_fpm_pool "www" do
+	  max_children 5
+	end
 
 	mysql_password = params[:db_password] || secure_password
 

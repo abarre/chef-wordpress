@@ -1,3 +1,3 @@
-include_recipe "varnish::apt_repo"
+include_recipe "varnish::repo"
 include_recipe "varnish"
 

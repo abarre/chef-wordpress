@@ -5,4 +5,4 @@ pagespeed DownstreamCachePurgeMethod PURGE;
 pagespeed DownstreamCacheRewrittenPercentageThreshold 95;
 
 pagespeed FileCachePath <%= @params['FileCachePath'] %>;
-pagespeed EnableFilters <%= @params['EnableFilters'] %>;
+pagespeed RewriteLevel CoreFilters;

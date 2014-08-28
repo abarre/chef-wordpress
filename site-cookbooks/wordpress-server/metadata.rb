@@ -1,13 +1,12 @@
-name             'wordpress'
+name             'wordpress-server'
 maintainer       'Anthony Barre'
 maintainer_email 'anthony.barre87@gmail.com'
 license          'All rights reserved'
-description      'Installs/Configures wordpress'
-long_description IO.read(File.join(File.dirname(__FILE__), 'README.md'))
+description      'Installs/Configures a wordpress server'
+long_description 'Varnish + Nginx + php-fpm + mysql = :)'
 version          '0.1.0'
 
 depends "mysql"
-depends "database"
 depends "php"
 depends "php-fpm"
 depends "nginx"

@@ -1,3 +1,5 @@
+vcl 4.0;
+
 backend default {
         .host = "<%= node['varnish']['backend_host'] %>";
         .port = "<%= node['varnish']['backend_port'] %>";
@@ -55,243 +57,237 @@ sub generate_user_agent_based_key {
       set req.http.PS-CapabilityList = req.http.default_ps_capability_list_for_small_screens;
     }
     # Remove placeholder header values.
-    remove req.http.default_ps_capability_list_for_large_screens;
-    remove req.http.default_ps_capability_list_for_large_screens;
+    unset req.http.default_ps_capability_list_for_large_screens;
+    unset req.http.default_ps_capability_list_for_large_screens;
 }
 
 sub vcl_recv {
-  if (req.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
-		# Skip the cache for .pagespeed. resource.  PageSpeed has its own
-		# cache for these, and these could bloat up the caching layer.
-		return (pass);
-	}
+    if (req.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
+        # Skip the cache for .pagespeed. resource.  PageSpeed has its own
+        # cache for these, and these could bloat up the caching layer.
+        return (pass);
+    }
 
-	if (req.url == "/monit-check") {
-    error 200 "Varnish up";
-  }
+    if (req.url == "/monit-check") {
+        return(synth(200,"Varnish up"));
+    }
 
- 	if (req.restarts == 0) {
-	  if (req.http.x-forwarded-for) {
-	    set req.http.X-Forwarded-For =
-	      req.http.X-Forwarded-For + ", " + client.ip;
-	  } else {
-	    set req.http.X-Forwarded-For = client.ip;
-	  }
-	}
+    if (req.restarts == 0) {
+      if (req.http.x-forwarded-for) {
+        set req.http.X-Forwarded-For =
+          req.http.X-Forwarded-For + ", " + client.ip;
+      } else {
+        set req.http.X-Forwarded-For = client.ip;
+      }
+    }
 
-	if (req.request == "PURGE") {
-	  if(!client.ip ~ purge) {
-	    error 405 "Not allowed.";
-	  }
+    if (req.method == "PURGE") {
+      if(!client.ip ~ purge) {
+        return(synth(405, "Not allowed."));
+      }
+      return(purge);
+    }
 
-	  # No need to process further conditions; just purge the cache
-	  return(lookup);
-	}
+    if (req.method != "GET" &&
+      req.method != "HEAD" &&
+      req.method != "PUT" &&
+      req.method != "POST" &&
+      req.method != "TRACE" &&
+      req.method != "OPTIONS" &&
+      req.method != "DELETE") {
 
-	if (req.request != "GET" &&
-	  req.request != "HEAD" &&
-	  req.request != "PUT" &&
-	  req.request != "POST" &&
-	  req.request != "TRACE" &&
-	  req.request != "OPTIONS" &&
-	  req.request != "DELETE") {
+      /* Non-RFC2616 or CONNECT which is weird. */
+      return (pipe);
+    }
 
-	  /* Non-RFC2616 or CONNECT which is weird. */
-	  return (pipe);
-	}
+    if (req.method != "GET" && req.method != "HEAD") {
+      /* We only deal with GET and HEAD by default */
+      return (pass);
+    }
 
-	if (req.request != "GET" && req.request != "HEAD") {
-	  /* We only deal with GET and HEAD by default */
-	  return (pass);
-	}
+    if (!req.http.PS-CapabilityList) {
+        call generate_user_agent_based_key;
+    }
 
-	if (!req.http.PS-CapabilityList) {
-  		call generate_user_agent_based_key;
-  	}
+    # Normalize the "Accept-Encoding" headers
+    if (req.http.Accept-Encoding) {
+      if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
+        # No point in compressing these
+        unset req.http.Accept-Encoding;
+      } elsif (req.http.Accept-Encoding ~ "gzip") {
+        set req.http.Accept-Encoding = "gzip";
+      } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
+        set req.http.Accept-Encoding = "deflate";
+      } else {
+        # unkown algorithm
+        unset req.http.Accept-Encoding;
+      }
+    }
 
-	# Normalize the "Accept-Encoding" headers
-	if (req.http.Accept-Encoding) {
-	  if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
-	    # No point in compressing these
-	    remove req.http.Accept-Encoding;
-	  } elsif (req.http.Accept-Encoding ~ "gzip") {
-	    set req.http.Accept-Encoding = "gzip";
-	  } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
-	    set req.http.Accept-Encoding = "deflate";
-	  } else {
-	    # unkown algorithm
-	    remove req.http.Accept-Encoding;
-	  }
-	}
+    #  Pipe possibly large-sized objects; except sitemaps
+    if (req.url ~ "^[^?]*\.(zip|tar|gz|tgz|bz2|mp[34]|pdf|rar|rtf|swf|wav)(\?.*)?$") {
+      if (req.url ~ "sitemap") { }
+      else {
+        return (pipe);
+      }
+    }
 
-	#  Pipe possibly large-sized objects; except sitemaps
-	if (req.url ~ "^[^?]*\.(zip|tar|gz|tgz|bz2|mp[34]|pdf|rar|rtf|swf|wav)(\?.*)?$") {
-	  if (req.url ~ "sitemap") { }
-	  else {
-	    return (pipe);
-	  }
-	}
+    # Check the admin pages
+    if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
+      return (pass);
+    }
 
-	# Check the admin pages
-	if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
-	  return (pass);
-	}
+    # Check the cookies for wordpress-specific cookies
+    if (req.http.cookie) {
+        if (req.http.cookie ~ "(wp_|comment_|wordpress_logged_in)") {
+          return(pass);
+        } else {
+          unset req.http.cookie;
+        }
+    }
 
-	# Check the cookies for wordpress-specific cookies
-	if (req.http.cookie) {
-		if (req.http.cookie ~ "(wp_|comment_|wordpress_logged_in)") {
-		  return(pass);
-		} else {
-		  unset req.http.cookie;
-		}
-	}
+    # Contact Pages
+    if (req.url ~ "contact") {
+      return (pass);
+    }
 
-	# Contact Pages
-	if (req.url ~ "contact") {
-	  return (pass);
-	}
+    #woocommerce
+    if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
+     return (pass);
+    }
 
-	#woocommerce
-	if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
-	 return (pass);
-	}
+    if ( req.url ~ "\?add-to-cart=" ) {
+     return (pass);
+    }
 
-	if ( req.url ~ "\?add-to-cart=" ) {
-	 return (pass);
-	}
+    # Images
+    if (req.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
+      return (pass);
+    }
 
-	# Images
-	if (req.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
-	  return (pass);
-	}
-
-	# CSS & JS
-	if (req.url ~ "\.(css|js)") {
-	  return (pass);
-	}
+    # CSS & JS
+    if (req.url ~ "\.(css|js)") {
+      return (pass);
+    }
 
 
-	# HTML & text
-	if (req.url ~ "\.(html?|txt)") {
-	  return(pass);
-	}
+    # HTML & text
+    if (req.url ~ "\.(html?|txt)") {
+      return(pass);
+    }
 
 
-	# Fonts
-	if (req.url ~ "\.(woff|eot|otf|ttf)") {
-	  return (pass);
-	}
+    # Fonts
+    if (req.url ~ "\.(woff|eot|otf|ttf)") {
+      return (pass);
+    }
 
 
-	# Other static content
-	if (req.url ~ "\.(zip|sql|tar|gz|bzip2)") {
-	  return (pass);
-	}
+    # Other static content
+    if (req.url ~ "\.(zip|sql|tar|gz|bzip2)") {
+      return (pass);
+    }
 
   # custom rules
-  return (lookup);
+  return (hash);
 }
 
-sub vcl_hit {
-    if (req.request == "PURGE") {
-        purge;
-        error 200 "Purged";
+sub vcl_backend_response {
+
+    ### This file basically contains things that shouldn't be cached by Varnish after fetching from the backend
+
+    # Admin pages
+    if (bereq.url ~ "wp-(login|admin/)" || bereq.url ~ "preview=true") {
+      set beresp.http.X-Cacheable = "NO: User is logged-in!";
+      set beresp.http.Cache-Control = "max-age=0";
+      set beresp.uncacheable = true;
+      return (deliver);
     }
-    return (deliver);
-}
 
-sub vcl_miss {
-    if (req.request == "PURGE") {
-        purge;
-        error 200 "Purged";
+    #woocommerce
+    if (bereq.url ~ "^/(panier|mon-compte|commande|addons)") {
+      set beresp.http.X-Cacheable = "NO: User has a cart";
+      set beresp.http.Cache-Control = "max-age=0";
+      set beresp.uncacheable = true;
+      return (deliver);
     }
-    return (fetch);
-}
 
-sub vcl_fetch {
+    if ( bereq.url ~ "\?add-to-cart=" ) {
+      set beresp.http.X-Cacheable = "NO: User has a cart";
+      set beresp.http.Cache-Control = "max-age=0";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	### This file basically contains things that shouldn't be cached by Varnish after fetching from the backend
+    # PHP
+    if (bereq.url ~ "\.php$") {
+      set beresp.http.X-Cacheable = "NO: PHP!";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# Admin pages
-	if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
-	  set beresp.http.X-Cacheable = "NO: User is logged-in!";
-	  set beresp.http.Cache-Control = "max-age=0";
-	  return (hit_for_pass);
-	}
-
-	#woocommerce
-	if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
-	  set beresp.http.X-Cacheable = "NO: User has a cart";
-	  set beresp.http.Cache-Control = "max-age=0";
-	  return (hit_for_pass);
-	}
-
-	if ( req.url ~ "\?add-to-cart=" ) {
-	  set beresp.http.X-Cacheable = "NO: User has a cart";
-	  set beresp.http.Cache-Control = "max-age=0";
-	  return (hit_for_pass);
-	}
-
-	# PHP
-	if (req.url ~ "\.php$") {
-	  set beresp.http.X-Cacheable = "NO: PHP!";
-	  return (hit_for_pass);
-	}
-
-	# Contact Pages
-	if (req.url ~ "contact") {
-	  set beresp.http.X-Cacheable = "NO: Contact Page";
-	  return (hit_for_pass);
-	}
+    # Contact Pages
+    if (bereq.url ~ "contact") {
+      set beresp.http.X-Cacheable = "NO: Contact Page";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
 
-	# If backend response is NOT 200.
-	if (beresp.status != 200 && beresp.status != 301) {
-	  set beresp.http.Cache-Control = "max-age=0";
-	  set beresp.http.X-Cacheable = "NO: Backup HTTP response is not 200";
-	  return (hit_for_pass);
-	}
+    # If backend response is NOT 200.
+    if (beresp.status != 200 && beresp.status != 301) {
+      set beresp.http.Cache-Control = "max-age=0";
+      set beresp.http.X-Cacheable = "NO: Backup HTTP response is not 200";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
   # Note #1 - Make sure, you have conf.d/receive/pagespeed.vcl in vcl_receive
-	if (req.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
-	  set beresp.http.X-Cacheable = "No: Pagespeed";
-	  return (hit_for_pass);
-	}
+    if (bereq.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
+      set beresp.http.X-Cacheable = "No: Pagespeed";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# Images
-	if (req.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
-	  unset beresp.http.cookie;
-	  set beresp.http.X-Cacheable = "NO: Images aren't cached";
-	  return (hit_for_pass);
-	}
+    # Images
+    if (bereq.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
+      unset beresp.http.cookie;
+      set beresp.http.X-Cacheable = "NO: Images aren't cached";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# CSS & JS
-	if (req.url ~ "\.(css|js)") {
-	  unset beresp.http.cookie;
-	  set beresp.http.X-Cacheable = "NO: CSS & JS files aren't cached";
-	  return (hit_for_pass);
-	}
+    # CSS & JS
+    if (bereq.url ~ "\.(css|js)") {
+      unset beresp.http.cookie;
+      set beresp.http.X-Cacheable = "NO: CSS & JS files aren't cached";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# HTML & Text files
-	if (req.url ~ "\.(html?|txt)") {
-	  unset beresp.http.cookie;
-	  set beresp.http.X-Cacheable = "NO: HTML & text files aren't cached";
-	  return (hit_for_pass);
-	}
+    # HTML & Text files
+    if (bereq.url ~ "\.(html?|txt)") {
+      unset beresp.http.cookie;
+      set beresp.http.X-Cacheable = "NO: HTML & text files aren't cached";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# Fonts
-	if (req.url ~ "\.(woff|eot|otf|ttf)") {
-	  unset beresp.http.cookie;
-	  set beresp.http.X-Cacheable = "NO: Webfonts aren't cached";
-	  return (hit_for_pass);
-	}
+    # Fonts
+    if (bereq.url ~ "\.(woff|eot|otf|ttf)") {
+      unset beresp.http.cookie;
+      set beresp.http.X-Cacheable = "NO: Webfonts aren't cached";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
-	# Other static content
-	if (req.url ~ "\.(zip|sql|tar|gz|bzip2|mp3|mp4|flv|ogg|swf)") {
-	  unset beresp.http.cookie;
-	  set beresp.http.X-Cacheable = "NO: Misc files aren't cached";
-	  return (hit_for_pass);
-	}
+    # Other static content
+    if (bereq.url ~ "\.(zip|sql|tar|gz|bzip2|mp3|mp4|flv|ogg|swf)") {
+      unset beresp.http.cookie;
+      set beresp.http.X-Cacheable = "NO: Misc files aren't cached";
+      set beresp.uncacheable = true;
+      return (deliver);
+    }
 
   # if a requests reaches this stage, then it is cacheable
   set beresp.http.X-Cacheable = "YES";
@@ -304,21 +300,21 @@ sub vcl_fetch {
 
 sub vcl_deliver {
   # Display the number of hits
-  if (obj.hits > 0) {
-    set resp.http.X-Cache = "HIT - " + obj.hits;
+  if (resp.http.x-varnish ~ " ") {
+      set resp.http.x-cache = "HIT";
   } else {
-    set resp.http.X-Cache = "MISS";
+      set resp.http.x-cache = "MISS";
   }
 
-	# Comment the following while doing maintenance
-	unset resp.http.Server;
-	unset resp.http.X-Varnish;
-	unset resp.http.Via;
-	unset resp.http.Age;
-	unset resp.http.X-Cacheable;
-	# unset resp.http.X-Cache;
-	unset resp.http.X-Powered-By;
-	unset resp.http.X-Page-Speed;
+  # Comment the following while doing maintenance
+  unset resp.http.Server;
+  unset resp.http.X-Varnish;
+  unset resp.http.Via;
+  unset resp.http.Age;
+  # unset resp.http.X-Cacheable;
+  # unset resp.http.X-Cache;
+  unset resp.http.X-Powered-By;
+  unset resp.http.X-Page-Speed;
 
   return (deliver);
 }
@@ -327,4 +323,5 @@ sub vcl_deliver {
 sub vcl_hash {
   # Block 3: Use the PS-CapabilityList value for computing the hash.
   hash_data(req.http.PS-CapabilityList);
+  return (lookup);
 }

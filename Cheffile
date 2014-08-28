@@ -1,14 +1,14 @@
 #!/usr/bin/env ruby
 #^syntax detection
 
-site 'http://community.opscode.com/api/v1'
+site "https://supermarket.getchef.com/api/v1"
 
-cookbook 'nginx', '2.2.0'
+cookbook 'nginx', '2.7.4'
 cookbook 'php-fpm', '0.6.10'
 cookbook 'wordpress-nginx', :git => 'git://github.com/abarre/wordpress-nginx.git'
 cookbook 'chef-solo-search'
-cookbook 'mysql'
-cookbook 'php', '1.2.6'
+cookbook 'mysql', '5.3.6'
+cookbook 'php', '1.4.6'
 cookbook 'build-essential'
 cookbook 'database'
 cookbook 'newrelic'

@@ -7,48 +7,7 @@ define :wordpress_site,
 	:server_name => "wordpress",
 	:nginx_conf_code => nil do
 
-	# Configure Ondrej's PPA for php5
-	apt_repository "php5" do
-	  uri "http://ppa.launchpad.net/ondrej/php5/ubuntu/"
-	  distribution node['lsb']['codename']
-	  components ["main"]
-	  keyserver "keyserver.ubuntu.com"
-	  key "E5267A6C"
-	  action :add
-	end
-
-	execute "apt-get update"
-
-	include_recipe "varnish_for_passenger"
-	include_recipe "nginx::source"
-	include_recipe "mysql::server"
-	include_recipe "php"
-	include_recipe "php::module_mysql"
-	include_recipe "php::module_gd"
-	include_recipe "php::module_apc"
-	include_recipe "php-fpm"
-	include_recipe "database::mysql"
-	include_recipe "newrelic::php-agent"
-
-	monitrc "nginx" do
-	  template_cookbook "wordpress"
-	end
-
-	monitrc "mysql" do
-	  template_cookbook "wordpress"
-	end
-
-	monitrc "php-fpm" do
-	  template_cookbook "wordpress"
-	end
-
-	monitrc "varnish" do
-	  template_cookbook "wordpress"
-	end
-
-	php_fpm_pool "www" do
-	  max_children 5
-	end
+	::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 
 	mysql_password = params[:db_password] || secure_password
 
@@ -65,14 +24,6 @@ define :wordpress_site,
 	  database_name params[:database]
 	  privileges [:select,:update,:insert,:create,:delete]
 	  action :grant
-	end
-
-	chef_gem "chef-rewind"
-	require 'chef/rewind'
-
-	rewind :template => "/etc/mysql/my.cnf" do
-	  source "mysql-my.cnf"
-	  cookbook_name "wordpress"
 	end
 
 	directory params[:path] do
@@ -96,7 +47,7 @@ define :wordpress_site,
 
 	template params[:path] + '/wp-config.php' do
 	  source 'wp-config.php.erb'
-	  cookbook 'wordpress'
+	  cookbook 'wordpress-app'
 	  mode 0755
 	  owner 'www-data'
 	  group 'root'

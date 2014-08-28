@@ -9,7 +9,7 @@ monitrc "sys" do
 end
 
 swap_file '/mnt/swap' do
-  size      2048    # MBs
+  size      4096    # MBs
   persist 	true
 end
 

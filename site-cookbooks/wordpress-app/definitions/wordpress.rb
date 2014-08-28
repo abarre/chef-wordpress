@@ -7,6 +7,8 @@ define :wordpress_site,
 	:server_name => "wordpress",
 	:nginx_conf_code => nil do
 
+	include_recipe "database::mysql"
+
 	::Chef::Recipe.send(:include, Opscode::OpenSSL::Password)
 
 	mysql_password = params[:db_password] || secure_password

@@ -50,7 +50,7 @@ end
 execute 'install-grants' do
   cmd = "/usr/bin/mysql"
   cmd << ' -u root '
-  cmd << "-p " + Shellwords.escape(node[:mysql][:server_root_password]) + " < /etc/mysql_grants.sql"
+  cmd << "-p" + Shellwords.escape(node[:mysql][:server_root_password]) + " < /etc/mysql_grants.sql"
   command cmd
   action :nothing
 end

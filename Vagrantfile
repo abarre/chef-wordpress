@@ -12,8 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   # config.vm.box = "ubuntu13_04"
   # config.vm.box = "ubuntu13_10"
-  config.vm.box = "tknerr/managed-server-dummy"
-  # config.vm.box = "trusty64"
+  config.vm.box = "trusty64"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
@@ -69,6 +68,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :lovelycarte_dedibox do |server|
+    server.vm.box = "tknerr/managed-server-dummy"
     server.vm.provider :managed do |managed, override|
       managed.server = "62.210.37.102"
       override.ssh.username = "anthony"

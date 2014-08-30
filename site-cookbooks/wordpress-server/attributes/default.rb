@@ -5,5 +5,3 @@ override['newrelic']['php-agent']['web_server']['service_name'] = "php-fpm"
 default['wordpress_nginx']['static_file_expiry'] = '24d'
 override['wordpress_nginx']['listen'] = default['varnish']['backend_port']
 override['nginx']['default_site_enabled'] = false
-
-override['mysql']['template_source'] = 'mysql-my.cnf'

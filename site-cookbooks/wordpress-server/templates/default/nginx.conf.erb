@@ -1,14 +1,10 @@
 check process nginx with pidfile /var/run/nginx.pid
   start program = "/etc/init.d/nginx start"
   stop  program = "/etc/init.d/nginx stop"
-  if failed host 127.0.0.1 port <%= node['wordpress_nginx']['listen'] %> http request "/" then restart
+  if failed host 127.0.0.1 port <%= node['wordpress_nginx']['listen'] %> then restart
   if 5 restarts within 5 cycles then timeout
-  depend nginx_bin
   depend nginx_rc
 
-check file nginx_bin with path /usr/sbin/nginx
-  group nginx
-  include /etc/monit/templates/rootbin
 
 check file nginx_rc with path /etc/init.d/nginx
   group nginx

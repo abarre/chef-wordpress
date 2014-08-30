@@ -1,8 +1,6 @@
 # It's prefered to not use "include_recipe mysql::server" that don't load the my.cnf file
 # before launching the service.
 
-include_recipe "mysqld"
-
 package 'debconf-utils' do
 	action :install
 end
@@ -28,6 +26,8 @@ execute 'preseed mysql-server' do
   command '/usr/bin/debconf-set-selections /var/cache/local/preseeding/mysql-server.seed'
   action :nothing
 end
+
+include_recipe "mysqld"
 
 execute 'assign-root-password' do
   cmd = "/usr/bin/mysqladmin"

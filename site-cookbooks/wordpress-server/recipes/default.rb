@@ -17,7 +17,7 @@ include_recipe "php::module_gd"
 include_recipe "php::module_apc"
 include_recipe "php-fpm"
 include_recipe "newrelic::php-agent"
-
+include_recipe "mysql-server"
 
 monitrc "nginx" do
   template_cookbook "wordpress-server"

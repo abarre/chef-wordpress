@@ -7,4 +7,3 @@ long_description 'Varnish + Nginx + php-fpm + mysql = :)'
 version          '0.1.0'
 
 depends "mysqld"
-depends "monit"

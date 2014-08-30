@@ -31,4 +31,8 @@ monitrc "varnish" do
   template_cookbook "wordpress-server"
 end
 
+monitrc "mysql" do
+  template_cookbook "wordpress-server"
+end
+
 php_fpm_pool "www"

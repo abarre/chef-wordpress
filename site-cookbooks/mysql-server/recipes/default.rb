@@ -3,10 +3,6 @@
 
 include_recipe "mysqld"
 
-monitrc "mysql" do
-  template_cookbook "mysql-server"
-end
-
 package 'debconf-utils' do
 	action :install
 end

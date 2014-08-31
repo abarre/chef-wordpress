@@ -19,6 +19,13 @@ include_recipe "php-fpm"
 include_recipe "newrelic::php-agent"
 include_recipe "mysql-server"
 
+directory "/var/lib/php5" do
+  owner "root"
+  group "root"
+  mode '1733'
+  action :create
+end
+
 monitrc "nginx" do
   template_cookbook "wordpress-server"
 end

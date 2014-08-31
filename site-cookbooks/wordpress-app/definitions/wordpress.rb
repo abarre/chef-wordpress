@@ -29,8 +29,8 @@ define :wordpress_site,
 	end
 
 	directory params[:path] do
-	  owner "root"
-	  group "root"
+	  owner "www-data"
+	  group "www-data"
 	  mode "0755"
 	  action :create
 	  recursive true
@@ -52,7 +52,7 @@ define :wordpress_site,
 	  cookbook 'wordpress-app'
 	  mode 0755
 	  owner 'www-data'
-	  group 'root'
+	  group 'www-data'
 	  variables(
 	    :database        => params[:database],
 	    :user            => params[:db_username],

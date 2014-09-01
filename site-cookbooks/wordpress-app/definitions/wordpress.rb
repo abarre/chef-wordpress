@@ -68,9 +68,23 @@ define :wordpress_site,
 	  )
 	end
 
+	pagespeed_conf = """
+		# Ensure requests for pagespeed optimized resources go to the pagespeed handler
+		# and no extraneous headers get set.
+		location ~ \"\\.pagespeed\.([a-z]\\.)?[a-z]{2}\\.[^.]{10}\\.[^.]+\" {add_header \"\" \"\";}
+		location ~ \"^/ngx_pagespeed_static/\" { }
+		location ~ \"^/ngx_pagespeed_beacon$\" { }
+		location /ngx_pagespeed_statistics { }
+		location /ngx_pagespeed_global_statistics { }
+		location /ngx_pagespeed_message { }
+		location /pagespeed_console { }
+		location ~ ^/pagespeed_admin { }
+		location ~ ^/pagespeed_global_admin { }
+	"""
+
 	wordpress_nginx_site params[:nginx_conf_name] do
 	  host params[:server_name]
 	  root params[:path]
-	  code params[:nginx_conf_code]
+	  code params[:nginx_conf_code] + pagespeed_conf
 	end
 end

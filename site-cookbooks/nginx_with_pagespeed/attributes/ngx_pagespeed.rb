@@ -33,6 +33,6 @@ default['nginx']['ngx_pagespeed']['psol']['url'] = "https://dl.google.com/dl/pag
 default['nginx']['ngx_pagespeed']['psol']['src']['cookbook'] = "nginx"
 default['nginx']['ngx_pagespeed']['psol']['src']['file'] = nil
 
-default['nginx']['ngx_pagespeed']['FileCachePath'] = "/tmp/ngx_pagespeed_cache"
+default['nginx']['ngx_pagespeed']['FileCachePath'] = "/var/ngx_pagespeed_cache"
 override['nginx']['client_max_body_size'] = "20m"
 override['nginx']['keepalive_timeout']    = 5

@@ -8,185 +8,138 @@ backend default {
 acl purge {
   "localhost";
   "127.0.0.1";
-  "188.226.171.191";
-}
-
-# Block 2: Define a key based on the User-Agent which can be used for hashing.
-# Also set the PS-CapabilityList header for PageSpeed server to respect.
-sub generate_user_agent_based_key {
-    # Define placeholder PS-CapabilityList header values for large and small
-    # screens with no UA dependent optimizations. Note that these placeholder
-    # values should not contain any of ll, ii, dj, jw or ws, since these
-    # codes will end up representing optimizations to be supported for the
-    # request.
-    set req.http.default_ps_capability_list_for_large_screens = "LargeScreen.SkipUADependentOptimizations:";
-    set req.http.default_ps_capability_list_for_small_screens = "TinyScreen.SkipUADependentOptimizations:";
-
-    # As a fallback, the PS-CapabilityList header that is sent to the upstream
-    # PageSpeed server should be for a large screen device with no browser
-    # specific optimizations.
-    set req.http.PS-CapabilityList = req.http.default_ps_capability_list_for_large_screens;
-
-    # Cache-fragment 1: Desktop User-Agents that support lazyload_images (ll),
-    # inline_images (ii) and defer_javascript (dj).
-    # Note: Wget is added for testing purposes only.
-    if (req.http.User-Agent ~ "(?i)Chrome/|Firefox/|MSIE |Safari|Wget") {
-      set req.http.PS-CapabilityList = "ll,ii,dj:";
-    }
-    # Cache-fragment 2: Desktop User-Agents that support lazyload_images (ll),
-    # inline_images (ii), defer_javascript (dj), webp (jw) and lossless_webp
-    # (ws).
-    if (req.http.User-Agent ~
-        "(?i)Chrome/[2][3-9]+\.|Chrome/[[3-9][0-9]+\.|Chrome/[0-9]{3,}\.") {
-      set req.http.PS-CapabilityList = "ll,ii,dj,jw,ws:";
-    }
-    # Cache-fragment 3: This fragment contains (a) Desktop User-Agents that
-    # match fragments 1 or 2 but should not because they represent older
-    # versions of certain browsers or bots and (b) Tablet User-Agents that
-    # on all browsers and use image compression qualities applicable to large
-    # screens. Note that even Tablets that are capable of supporting inline or
-    # webp images, e.g. Android 4.1.2, will not get these advanced
-    # optimizations.
-    if (req.http.User-Agent ~ "(?i)Firefox/[1-2]\.|MSIE [5-8]\.|bot|Yahoo!|Ruby|RPT-HTTPClient|(Google \(\+https\:\/\/developers\.google\.com\/\+\/web\/snippet\/\))|Android|iPad|TouchPad|Silk-Accelerated|Kindle Fire") {
-      set req.http.PS-CapabilityList = req.http.default_ps_capability_list_for_large_screens;
-    }
-    # Cache-fragment 4: Mobiles and small screen Tablets will use image compression
-    # qualities applicable to small screens, but all other optimizations will be
-    # those that work on all browsers.
-    if (req.http.User-Agent ~ "(?i)Mozilla.*Android.*Mobile*|iPhone|BlackBerry|Opera Mobi|Opera Mini|SymbianOS|UP.Browser|J-PHONE|Profile/MIDP|portalmmm|DoCoMo|Obigo|Galaxy Nexus|GT-I9300|GT-N7100|HTC One|Nexus [4|7|S]|Xoom|XT907") {
-      set req.http.PS-CapabilityList = req.http.default_ps_capability_list_for_small_screens;
-    }
-    # Remove placeholder header values.
-    unset req.http.default_ps_capability_list_for_large_screens;
-    unset req.http.default_ps_capability_list_for_large_screens;
+  "<%= node.ipaddress %>";
 }
 
 sub vcl_recv {
-    if (req.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
-        # Skip the cache for .pagespeed. resource.  PageSpeed has its own
-        # cache for these, and these could bloat up the caching layer.
-        return (pass);
+  if (req.url ~ "pagespeed") {
+      # Skip the cache for .pagespeed. resource.  PageSpeed has its own
+      # cache for these, and these could bloat up the caching layer.
+      return (pass);
+  }
+
+  if (req.url == "/monit-check") {
+      return(synth(200,"Varnish up"));
+  }
+
+  if (req.restarts == 0) {
+    if (req.http.x-forwarded-for) {
+      set req.http.X-Forwarded-For =
+        req.http.X-Forwarded-For + ", " + client.ip;
+    } else {
+      set req.http.X-Forwarded-For = client.ip;
     }
+  }
 
-    if (req.url == "/monit-check") {
-        return(synth(200,"Varnish up"));
+  if (req.method == "PURGE") {
+    if(!client.ip ~ purge) {
+      return(synth(405, "Not allowed." + client.ip));
     }
+    # return(purge);
+    # refresh the page instead of purging it
+    set req.hash_always_miss = true;
+    set req.method = "GET";
+  }
 
-    if (req.restarts == 0) {
-      if (req.http.x-forwarded-for) {
-        set req.http.X-Forwarded-For =
-          req.http.X-Forwarded-For + ", " + client.ip;
-      } else {
-        set req.http.X-Forwarded-For = client.ip;
-      }
+  if (req.method != "GET" &&
+    req.method != "HEAD" &&
+    req.method != "PUT" &&
+    req.method != "POST" &&
+    req.method != "TRACE" &&
+    req.method != "OPTIONS" &&
+    req.method != "DELETE") {
+
+    /* Non-RFC2616 or CONNECT which is weird. */
+    return (pipe);
+  }
+
+  # Do not cache POST request
+  if (req.method == "POST") {
+      return (pipe);
+  }
+
+  if (req.method != "GET" && req.method != "HEAD") {
+    /* We only deal with GET and HEAD by default */
+    return (pass);
+  }
+
+  # Normalize the "Accept-Encoding" headers
+  if (req.http.Accept-Encoding) {
+    if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
+      # No point in compressing these
+      unset req.http.Accept-Encoding;
+    } elsif (req.http.Accept-Encoding ~ "gzip") {
+      set req.http.Accept-Encoding = "gzip";
+    } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
+      set req.http.Accept-Encoding = "deflate";
+    } else {
+      # unkown algorithm
+      unset req.http.Accept-Encoding;
     }
+  }
 
-    if (req.method == "PURGE") {
-      if(!client.ip ~ purge) {
-        return(synth(405, "Not allowed."));
-      }
-      return(purge);
-    }
-
-    if (req.method != "GET" &&
-      req.method != "HEAD" &&
-      req.method != "PUT" &&
-      req.method != "POST" &&
-      req.method != "TRACE" &&
-      req.method != "OPTIONS" &&
-      req.method != "DELETE") {
-
-      /* Non-RFC2616 or CONNECT which is weird. */
+  #  Pipe possibly large-sized objects; except sitemaps
+  if (req.url ~ "^[^?]*\.(zip|tar|gz|tgz|bz2|mp[34]|pdf|rar|rtf|swf|wav)(\?.*)?$") {
+    if (req.url ~ "sitemap") { }
+    else {
       return (pipe);
     }
+  }
 
-    if (req.method != "GET" && req.method != "HEAD") {
-      /* We only deal with GET and HEAD by default */
-      return (pass);
-    }
+  # Check the admin pages
+  if (req.url ~ "wp-(login|admin)" || req.url ~ "preview=true") {
+    return (pass);
+  }
 
-    if (!req.http.PS-CapabilityList) {
-        call generate_user_agent_based_key;
-    }
+  # Contact Pages
+  if (req.url ~ "contact") {
+    return (pass);
+  }
 
-    # Normalize the "Accept-Encoding" headers
-    if (req.http.Accept-Encoding) {
-      if (req.url ~ "\.(jpg|png|gif|gz|tgz|bz2|tbz|mp3|ogg)$") {
-        # No point in compressing these
-        unset req.http.Accept-Encoding;
-      } elsif (req.http.Accept-Encoding ~ "gzip") {
-        set req.http.Accept-Encoding = "gzip";
-      } elsif (req.http.Accept-Encoding ~ "deflate" && req.http.user-agent !~ "MSIE") {
-        set req.http.Accept-Encoding = "deflate";
-      } else {
-        # unkown algorithm
-        unset req.http.Accept-Encoding;
-      }
-    }
+  #woocommerce
+  if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
+   return (pass);
+  }
 
-    #  Pipe possibly large-sized objects; except sitemaps
-    if (req.url ~ "^[^?]*\.(zip|tar|gz|tgz|bz2|mp[34]|pdf|rar|rtf|swf|wav)(\?.*)?$") {
-      if (req.url ~ "sitemap") { }
-      else {
-        return (pipe);
-      }
-    }
+  if ( req.url ~ "\?add-to-cart=" ) {
+   return (pass);
+  }
 
-    # Check the admin pages
-    if (req.url ~ "wp-(login|admin/)" || req.url ~ "preview=true") {
-      return (pass);
-    }
+  # don't cache ajax requests
+  if (req.http.X-Requested-With == "XMLHttpRequest") {
+      return (pipe);
+  }
 
-    # Check the cookies for wordpress-specific cookies
-    if (req.http.cookie) {
-        if (req.http.cookie ~ "(wp_|comment_|wordpress_logged_in)") {
-          return(pass);
-        } else {
-          unset req.http.cookie;
-        }
-    }
+  # Images
+  if (req.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
+    return (pass);
+  }
 
-    # Contact Pages
-    if (req.url ~ "contact") {
-      return (pass);
-    }
-
-    #woocommerce
-    if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
-     return (pass);
-    }
-
-    if ( req.url ~ "\?add-to-cart=" ) {
-     return (pass);
-    }
-
-    # Images
-    if (req.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
-      return (pass);
-    }
-
-    # CSS & JS
-    if (req.url ~ "\.(css|js)") {
-      return (pass);
-    }
+  # CSS & JS
+  if (req.url ~ "\.(css|js)") {
+    return (pass);
+  }
 
 
-    # HTML & text
-    if (req.url ~ "\.(html?|txt)") {
-      return(pass);
-    }
+  # HTML & text
+  if (req.url ~ "\.(html?|txt)") {
+    return(pass);
+  }
 
 
-    # Fonts
-    if (req.url ~ "\.(woff|eot|otf|ttf)") {
-      return (pass);
-    }
+  # Fonts
+  if (req.url ~ "\.(woff|eot|otf|ttf)") {
+    return (pass);
+  }
 
 
-    # Other static content
-    if (req.url ~ "\.(zip|sql|tar|gz|bzip2)") {
-      return (pass);
-    }
+  # Other static content
+  if (req.url ~ "\.(zip|sql|tar|gz|bzip2)") {
+    return (pass);
+  }
+
+  # Check the cookies for wordpress-specific cookies
+  unset req.http.cookie;
 
   # custom rules
   return (hash);
@@ -194,106 +147,103 @@ sub vcl_recv {
 
 sub vcl_backend_response {
 
-    ### This file basically contains things that shouldn't be cached by Varnish after fetching from the backend
+  #set cookie only with POST request.
+  unset beresp.http.set-cookie;
+  unset beresp.http.cookie;
 
-    # Admin pages
-    if (bereq.url ~ "wp-(login|admin/)" || bereq.url ~ "preview=true") {
-      set beresp.http.X-Cacheable = "NO: User is logged-in!";
-      set beresp.http.Cache-Control = "max-age=0";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # Admin pages
+  if (bereq.url ~ "wp-(login|admin)" || bereq.url ~ "preview=true") {
+    set beresp.http.X-Cacheable = "NO: User is logged-in!";
+    set beresp.http.Cache-Control = "max-age=0";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    #woocommerce
-    if (bereq.url ~ "^/(panier|mon-compte|commande|addons)") {
-      set beresp.http.X-Cacheable = "NO: User has a cart";
-      set beresp.http.Cache-Control = "max-age=0";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  #woocommerce
+  if (bereq.url ~ "^/(panier|mon-compte|commande|addons)") {
+    set beresp.http.X-Cacheable = "NO: User has a cart";
+    set beresp.http.Cache-Control = "max-age=0";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    if ( bereq.url ~ "\?add-to-cart=" ) {
-      set beresp.http.X-Cacheable = "NO: User has a cart";
-      set beresp.http.Cache-Control = "max-age=0";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  if ( bereq.url ~ "\?add-to-cart=" ) {
+    set beresp.http.X-Cacheable = "NO: User has a cart";
+    set beresp.http.Cache-Control = "max-age=0";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # PHP
-    if (bereq.url ~ "\.php$") {
-      set beresp.http.X-Cacheable = "NO: PHP!";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # PHP
+  if (bereq.url ~ "\.php$") {
+    set beresp.http.X-Cacheable = "NO: PHP!";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # Contact Pages
-    if (bereq.url ~ "contact") {
-      set beresp.http.X-Cacheable = "NO: Contact Page";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # Contact Pages
+  if (bereq.url ~ "contact") {
+    set beresp.http.X-Cacheable = "NO: Contact Page";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
 
-    # If backend response is NOT 200.
-    if (beresp.status != 200 && beresp.status != 301) {
-      set beresp.http.Cache-Control = "max-age=0";
-      set beresp.http.X-Cacheable = "NO: Backup HTTP response is not 200";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # If backend response is NOT 200.
+  if (beresp.status != 200 && beresp.status != 301) {
+    set beresp.http.Cache-Control = "max-age=0";
+    set beresp.http.X-Cacheable = "NO: Backup HTTP response is not 200";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-  # Note #1 - Make sure, you have conf.d/receive/pagespeed.vcl in vcl_receive
-    if (bereq.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
-      set beresp.http.X-Cacheable = "No: Pagespeed";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+# Note #1 - Make sure, you have conf.d/receive/pagespeed.vcl in vcl_receive
+  if (bereq.url ~ "\.pagespeed\.([a-z]\.)?[a-z]{2}\.[^.]{10}\.[^.]+") {
+    set beresp.http.X-Cacheable = "No: Pagespeed";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # Images
-    if (bereq.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
-      unset beresp.http.cookie;
-      set beresp.http.X-Cacheable = "NO: Images aren't cached";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # Images
+  if (bereq.url ~ "\.(jpg|jpeg|png|gif|ico|tiff|tif|bmp|ppm|pgm|xcf|psd|webp|svg)") {
+    set beresp.http.X-Cacheable = "NO: Images aren't cached";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # CSS & JS
-    if (bereq.url ~ "\.(css|js)") {
-      unset beresp.http.cookie;
-      set beresp.http.X-Cacheable = "NO: CSS & JS files aren't cached";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # CSS & JS
+  if (bereq.url ~ "\.(css|js)") {
+    set beresp.http.X-Cacheable = "NO: CSS & JS files aren't cached";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # HTML & Text files
-    if (bereq.url ~ "\.(html?|txt)") {
-      unset beresp.http.cookie;
-      set beresp.http.X-Cacheable = "NO: HTML & text files aren't cached";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # HTML & Text files
+  if (bereq.url ~ "\.(html?|txt)") {
+    set beresp.http.X-Cacheable = "NO: HTML & text files aren't cached";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # Fonts
-    if (bereq.url ~ "\.(woff|eot|otf|ttf)") {
-      unset beresp.http.cookie;
-      set beresp.http.X-Cacheable = "NO: Webfonts aren't cached";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # Fonts
+  if (bereq.url ~ "\.(woff|eot|otf|ttf)") {
+    set beresp.http.X-Cacheable = "NO: Webfonts aren't cached";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
-    # Other static content
-    if (bereq.url ~ "\.(zip|sql|tar|gz|bzip2|mp3|mp4|flv|ogg|swf)") {
-      unset beresp.http.cookie;
-      set beresp.http.X-Cacheable = "NO: Misc files aren't cached";
-      set beresp.uncacheable = true;
-      return (deliver);
-    }
+  # Other static content
+  if (bereq.url ~ "\.(zip|sql|tar|gz|bzip2|mp3|mp4|flv|ogg|swf)") {
+    set beresp.http.X-Cacheable = "NO: Misc files aren't cached";
+    set beresp.uncacheable = true;
+    return (deliver);
+  }
 
   # if a requests reaches this stage, then it is cacheable
-  set beresp.http.X-Cacheable = "YES";
+  set beresp.http.X-Cacheable = "YES - SHORT";
+  set beresp.http.Cache-Control = "max-age=600, must-revalidate";
 
-  # The default value of 120s can be modified here
-  set beresp.ttl = 30d;
+  set beresp.ttl = 24d;
 
   return (deliver);
 }
@@ -301,9 +251,10 @@ sub vcl_backend_response {
 sub vcl_deliver {
   # Display the number of hits
   if (resp.http.x-varnish ~ " ") {
-      set resp.http.x-cache = "HIT";
+      set resp.http.X-Cache = "HIT";
+      set resp.http.X-Cache-Hits = obj.hits;
   } else {
-      set resp.http.x-cache = "MISS";
+      set resp.http.X-Cache = "MISS";
   }
 
   # Comment the following while doing maintenance
@@ -317,11 +268,4 @@ sub vcl_deliver {
   unset resp.http.X-Page-Speed;
 
   return (deliver);
-}
-
-# The data on which the hashing will take place
-sub vcl_hash {
-  # Block 3: Use the PS-CapabilityList value for computing the hash.
-  hash_data(req.http.PS-CapabilityList);
-  return (lookup);
 }

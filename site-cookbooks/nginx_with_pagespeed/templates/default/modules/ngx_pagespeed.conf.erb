@@ -5,4 +5,27 @@ pagespeed DownstreamCachePurgeMethod PURGE;
 pagespeed DownstreamCacheRewrittenPercentageThreshold 95;
 
 pagespeed FileCachePath <%= @params['FileCachePath'] %>;
-pagespeed RewriteLevel CoreFilters;
+
+pagespeed EnableFilters combine_css;
+pagespeed EnableFilters combine_javascript;
+pagespeed EnableFilters extend_cache;
+pagespeed EnableFilters flatten_css_imports;
+pagespeed EnableFilters inline_css;
+pagespeed EnableFilters inline_javascript;
+pagespeed EnableFilters rewrite_css;
+pagespeed EnableFilters recompress_jpeg;
+pagespeed EnableFilters recompress_png;
+pagespeed EnableFilters strip_image_color_profile;
+pagespeed EnableFilters strip_image_meta_data;
+pagespeed EnableFilters rewrite_javascript;
+
+pagespeed Statistics on;
+pagespeed StatisticsLogging on;
+pagespeed LogDir /var/log/pagespeed;
+
+pagespeed StatisticsPath /ngx_pagespeed_statistics;
+pagespeed GlobalStatisticsPath /ngx_pagespeed_global_statistics;
+pagespeed MessagesPath /ngx_pagespeed_message;
+pagespeed ConsolePath /pagespeed_console;
+pagespeed AdminPath /pagespeed_admin;
+pagespeed GlobalAdminPath /pagespeed_global_admin;

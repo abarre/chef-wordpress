@@ -35,10 +35,7 @@ sub vcl_recv {
     if(!client.ip ~ purge) {
       return(synth(405, "Not allowed." + client.ip));
     }
-    # return(purge);
-    # refresh the page instead of purging it
-    set req.hash_always_miss = true;
-    set req.method = "GET";
+    return(purge);
   }
 
   if (req.method != "GET" &&

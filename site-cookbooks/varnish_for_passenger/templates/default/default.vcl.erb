@@ -77,7 +77,9 @@ sub vcl_recv {
 
   #  Pipe possibly large-sized objects; except sitemaps
   if (req.url ~ "^[^?]*\.(zip|tar|gz|tgz|bz2|mp[34]|pdf|rar|rtf|swf|wav)(\?.*)?$") {
-    if (req.url ~ "sitemap") { }
+    if (req.url ~ "sitemap") {
+      return (pass);
+    }
     else {
       return (pipe);
     }
@@ -96,6 +98,10 @@ sub vcl_recv {
   #woocommerce
   if (req.url ~ "^/(panier|mon-compte|commande|addons)") {
    return (pass);
+  }
+
+  if ( req.url ~ "\?warm_cache=") {
+    return (pass);
   }
 
   if ( req.url ~ "\?add-to-cart=" ) {

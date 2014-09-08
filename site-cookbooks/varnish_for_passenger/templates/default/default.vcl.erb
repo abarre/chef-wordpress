@@ -35,6 +35,14 @@ sub vcl_recv {
     if(!client.ip ~ purge) {
       return(synth(405, "Not allowed." + client.ip));
     }
+
+    if (req.http.X-Purge-Method) {
+      if (req.http.X-Purge-Method == "regex") {
+        ban("req.http.host == " + req.http.host + " && req.url ~ " + req.url);
+        return(synth(200, "Ban added"));
+      }
+    }
+
     return(purge);
   }
 

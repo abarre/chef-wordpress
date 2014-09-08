@@ -38,3 +38,11 @@ file thephonedressing_ssl_cert_key_path do
   content thephonedressing_cert[:key]
   action :create
 end
+
+file "/etc/cron.d/thephonedressing_update_cache" do
+  owner "root"
+  group "root"
+  mode "0644"
+  content "15 * * * * root /usr/bin/curl --silent 'http://thephonedressing.com/?warm_cache=K4Ydu2xOq'\n"
+  action :create
+end

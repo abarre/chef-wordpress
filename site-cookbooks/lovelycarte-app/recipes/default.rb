@@ -69,3 +69,12 @@ if import_lovelycarte
     action :query
   end
 end
+
+
+file "/etc/cron.d/lovelycarte_update_cache" do
+  owner "root"
+  group "root"
+  mode "0644"
+  content "15 * * * * root /usr/bin/curl --silent 'http://lovelycarte.com/?warm_cache=giEBP3Mae'\n"
+  action :create
+end

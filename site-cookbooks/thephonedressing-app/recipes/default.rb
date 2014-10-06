@@ -43,6 +43,6 @@ file "/etc/cron.d/thephonedressing_update_cache" do
   owner "root"
   group "root"
   mode "0644"
-  content "15 * * * * root /usr/bin/curl --silent 'http://thephonedressing.com/?warm_cache=K4Ydu2xOq'\n"
+  content "0,15,30,45 * * * * root /usr/bin/curl --silent 'http://thephonedressing.com/?warm_cache=K4Ydu2xOq'\n"
   action :create
 end

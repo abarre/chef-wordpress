@@ -75,6 +75,6 @@ file "/etc/cron.d/lovelycarte_update_cache" do
   owner "root"
   group "root"
   mode "0644"
-  content "15 * * * * root /usr/bin/curl --silent 'http://lovelycarte.com/?warm_cache=giEBP3Mae'\n"
+  content "5,20,35,50 * * * * root /usr/bin/curl --silent 'http://lovelycarte.com/?warm_cache=0lVH7C05Y'\n"
   action :create
 end

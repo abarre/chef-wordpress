@@ -3,6 +3,7 @@ vcl 4.0;
 backend default {
         .host = "<%= node['varnish']['backend_host'] %>";
         .port = "<%= node['varnish']['backend_port'] %>";
+        .first_byte_timeout = 300s;
 }
 
 acl purge {
@@ -203,7 +204,7 @@ sub vcl_backend_response {
   # If backend response is NOT 200.
   if (beresp.status != 200 && beresp.status != 301) {
     set beresp.http.Cache-Control = "max-age=0";
-    set beresp.http.X-Cacheable = "NO: Backup HTTP response is not 200";
+    set beresp.http.X-Cacheable = "NO: Backend HTTP response is not 200";
     set beresp.uncacheable = true;
     return (deliver);
   }

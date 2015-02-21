@@ -8,7 +8,7 @@
 	    "mirror_site_url": "mirror://mirrors.ubuntu.com/mirrors.txt",
       "version": "12.04"
 	  },
-    "build_essential": {
+    "build-essential": {
       "compiletime" : true
     }
   },

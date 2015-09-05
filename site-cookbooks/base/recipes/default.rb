@@ -22,6 +22,6 @@ template '/etc/cron.daily/backup-manager' do
   source 'backup-manager'
   owner 'root'
   group 'root'
-  mode '0751'
+  mode '0755'
   action :create
 end

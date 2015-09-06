@@ -22,25 +22,29 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
 
-  VAGRANT_JSON = JSON.parse(Pathname(__FILE__).dirname.join('nodes', 'vagrant.json').read)
-
   config.omnibus.chef_version = "11.6.2"
   # server.omnibus.chef_version = "11.8.0"
 
-  config.vm.provision :chef_solo do |chef|
-    chef.cookbooks_path = ["site-cookbooks", "cookbooks"]
-    chef.roles_path = "roles"
-    chef.data_bags_path = "data_bags"
-    chef.provisioning_path = "/tmp/vagrant-chef"
-    chef.log_level = :info
+  def provision_wordpress config
+    wordpress_json = JSON.parse(Pathname(__FILE__).dirname.join('nodes', 'wordpress-server.json').read)
+    config.vm.provision :chef_solo do |chef|
+      chef.cookbooks_path = ["site-cookbooks", "cookbooks"]
+      chef.roles_path = "roles"
+      chef.data_bags_path = "data_bags"
+      chef.provisioning_path = "/tmp/vagrant-chef"
+      chef.log_level = :info
 
-    # You may also specify custom JSON attributes:
-    chef.run_list = VAGRANT_JSON.delete('run_list')
-    chef.json = VAGRANT_JSON
+      # You may also specify custom JSON attributes:
+      chef.run_list = wordpress_json.delete('run_list')
+      chef.json = wordpress_json
+    end
+  end
 
-    # Dir["#{Pathname(__FILE__).dirname.join('roles')}/*.json"].each do |role|
-    #   chef.add_role(role)
-    # end
+  config.vm.define :wordpress_vb do |server|
+    server.vm.synced_folder "/Users/anthony/.ssh", "/root/.ssh",  owner: "root", group: "root"
+    server.vm.hostname = 'lovelycarte.com'
+    server.vm.network :forwarded_port, guest: 80, host: 80
+    provision_wordpress server
   end
 
   config.vm.define :lovelycarte_vb do |server|
@@ -49,7 +53,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     server.vm.network :forwarded_port, guest: 80, host: 8085
   end
 
-  config.vm.define :lovelycarte do |server|
+  config.vm.define :wordpress_digital_ocean do |server|
     server.vm.hostname = 'lovelycarte.com'
 
     server.vm.provider :digital_ocean do |provider, override|
@@ -65,14 +69,16 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       provider.size = "1GB"
       provider.backups_enabled = true
     end
+    provision_wordpress server
   end
 
-  config.vm.define :lovelycarte_dedibox do |server|
+  config.vm.define :wordpress_dedibox do |server|
     server.vm.box = "tknerr/managed-server-dummy"
     server.vm.provider :managed do |managed, override|
       managed.server = "62.210.37.102"
       override.ssh.username = "anthony"
       override.ssh.private_key_path = '~/.ssh/id_rsa'
     end
+    provision_wordpress server
   end
 end

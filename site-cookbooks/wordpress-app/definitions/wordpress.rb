@@ -85,6 +85,6 @@ define :wordpress_site,
 	wordpress_nginx_site params[:nginx_conf_name] do
 	  host params[:server_name]
 	  root params[:path]
-	  code params[:nginx_conf_code] + pagespeed_conf
+	  code (params[:nginx_conf_code] || "") + pagespeed_conf
 	end
 end

@@ -11,6 +11,8 @@
     "role[base]",
     "recipe[wordpress-server]",
   	"recipe[lovelycarte-app]",
-    "recipe[thephonedressing-app]"
+    "recipe[thephonedressing-app]",
+    "recipe[alice-gerfault-app]",
+    "recipe[blog-preparer-son-mariage-app]"
   ]
 }

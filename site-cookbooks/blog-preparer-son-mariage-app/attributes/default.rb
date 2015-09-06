@@ -1,0 +1,5 @@
+default['blog-mariage']['nginx_conf_name'] = "blog-mariage"
+default['blog-mariage']['database'] = "blog-mariage"
+default['blog-mariage']['db_username'] = "blog-mariage"
+default['blog-mariage']['path'] = "/var/www/blog-mariage"
+default['blog-mariage']['server_name'] = "blog.preparer-son-mariage.fr"

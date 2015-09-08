@@ -17,7 +17,7 @@ include_recipe "php::module_gd"
 include_recipe "php::module_apc"
 include_recipe "php::module_curl"
 include_recipe "php-fpm"
-include_recipe "newrelic::php-agent"
+include_recipe "newrelic::php_agent"
 include_recipe "mysql-server"
 
 directory "/var/lib/php5" do

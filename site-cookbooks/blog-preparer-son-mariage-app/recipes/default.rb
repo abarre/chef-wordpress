@@ -42,6 +42,6 @@ file "/etc/cron.d/blog-mariage_update_cache" do
   owner "root"
   group "root"
   mode "0644"
-  content "5,20,35,50 * * * * root /usr/bin/curl --silent 'http://blog.preparer-son-mariage.fr/?warm_cache=0lVH7C05Y'\n"
+  content "5,20,35,50 * * * * root /usr/bin/curl --silent 'http://blog.preparer-son-mariage.fr/?warm_cache=w5Gm81h8x'\n"
   action :create
 end

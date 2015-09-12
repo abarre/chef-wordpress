@@ -7,6 +7,6 @@ override['newrelic']['php_agent']['execute_php5enmod'] = true
 
 default['wordpress_nginx']['static_file_expiry'] = '24d'
 override['wordpress_nginx']['listen'] = default['varnish']['backend_port']
-override['nginx']['default_site_enabled'] = false
+default['wordpress_nginx']['fastcgi_params'] = 'fastcgi_param PHP_VALUE "newrelic.appname=$host";'
 
-override['wordpress_nginx']['cookbook'] = 'wordpress-server'
+override['nginx']['default_site_enabled'] = false

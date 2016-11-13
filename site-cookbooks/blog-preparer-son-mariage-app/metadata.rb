@@ -1,4 +1,4 @@
-name             'alice-gerfault-app'
+name             'blog-preparer-son-mariage-app'
 maintainer       'Anthony Barre'
 license          'All rights reserved'
 description      'Installs/Configures wordpress'

@@ -1,5 +1,0 @@
-default['lovelycarte']['nginx_conf_name'] = "lovelycarte"
-default['lovelycarte']['database'] = "lovelycarte"
-default['lovelycarte']['db_username'] = "lovelycarte"
-default['lovelycarte']['path'] = "/var/www/lovelycarte"
-default['lovelycarte']['server_name'] = "*.lovelycarte.com lovelycarte.com"

@@ -12,6 +12,7 @@
     "recipe[wordpress-server]",
     "recipe[thephonedressing-app]",
     "recipe[alice-gerfault-app]",
-    "recipe[blog-preparer-son-mariage-app]"
+    "recipe[blog-preparer-son-mariage-app]",
+    "recipe[swaze-app]"
   ]
 }

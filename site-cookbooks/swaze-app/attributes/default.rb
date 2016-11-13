@@ -1,0 +1,5 @@
+default['swaze']['nginx_conf_name'] = "swaze"
+default['swaze']['database'] = "swaze"
+default['swaze']['db_username'] = "swaze"
+default['swaze']['path'] = "/var/www/swaze"
+default['swaze']['server_name'] = "swaze.fr www.swaze.fr"

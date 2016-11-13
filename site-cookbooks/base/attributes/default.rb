@@ -30,7 +30,7 @@ default[:backup_manager][:upload_method] = "ftp"
 default[:backup_manager][:upload_ftp_secure] = 'false'
 default[:backup_manager][:upload_ftp_passive] = 'true'
 default[:backup_manager][:upload_ftp_purge] = 'true'
-default[:backup_manager][:upload_ftp_ttl] = '2'
+default[:backup_manager][:upload_ftp_ttl] = '5'
 default[:backup_manager][:upload_ftp_destination] = '/'
 
 override[:backup_manager][:mysql_adminpass] = node[:mysql][:server_root_password]

@@ -40,22 +40,7 @@ knife solo data bag create certificate lovelycarte
 }
 ```
 
-Credential file : create a file `default.rb` in `site-cookbooks/credential/attributes` that contains the following informations :
-
-```ruby
-default[:admin][:email] = ""
-default[:admin][:email_password] = ""
-
-override[:ssmtp][:root] = ""
-override[:ssmtp][:auth_username] = ""
-override[:ssmtp][:auth_password] = ""
-override[:ssmtp][:hostname] = ""
-
-
-override[:newrelic][:server_monitoring][:license] = ""
-override[:newrelic][:application_monitoring][:license] = ""
-```
-
+Credential file : create a file `default.rb` in `site-cookbooks/credential/attributes` that contains the content of the default.example.rb file.
 ## create a machine
 
 ```

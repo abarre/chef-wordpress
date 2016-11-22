@@ -22,7 +22,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # within the machine from a port on the host machine. In the example below,
   # accessing "localhost:8080" will access port 80 on the guest machine.
 
-  config.omnibus.chef_version = "11.6.2"
+  config.omnibus.chef_version = "11.18.12"
   # server.omnibus.chef_version = "11.8.0"
 
   def provision_wordpress config

@@ -1,6 +1,6 @@
 # Configure Ondrej's PPA for php5
-apt_repository "php5" do
-  uri "http://ppa.launchpad.net/ondrej/php5/ubuntu/"
+apt_repository "php" do
+  uri "http://ppa.launchpad.net/ondrej/php/ubuntu/"
   distribution node['lsb']['codename']
   components ["main"]
   keyserver "keyserver.ubuntu.com"

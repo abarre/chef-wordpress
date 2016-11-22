@@ -4,6 +4,7 @@ include_recipe "monit::ssh"
 include_recipe "ssmtp"
 include_recipe "newrelic"
 include_recipe "backup-manager"
+include_recipe "unattended_upgrades"
 
 monitrc "sys" do
   template_cookbook "base"

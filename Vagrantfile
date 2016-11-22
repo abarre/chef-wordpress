@@ -12,7 +12,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   # Every Vagrant virtual environment requires a box to build off of.
   # config.vm.box = "ubuntu13_04"
   # config.vm.box = "ubuntu13_10"
-  config.vm.box = "trusty64"
+  config.vm.box = "ubuntu/trusty64"
 
   # The url from where the 'config.vm.box' box will be fetched if it
   # doesn't already exist on the user's system.
@@ -41,20 +41,20 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
   config.vm.define :wordpress_vb do |server|
-    server.vm.synced_folder "/Users/anthony/.ssh", "/root/.ssh",  owner: "root", group: "root"
-    server.vm.hostname = 'lovelycarte.com'
+    server.vm.synced_folder "~/.ssh", "/root/.ssh",  owner: "root", group: "root"
+    server.vm.hostname = 'alice-gerfault.com'
     server.vm.network :forwarded_port, guest: 80, host: 80
     provision_wordpress server
   end
 
   config.vm.define :lovelycarte_vb do |server|
-    server.vm.synced_folder "/Users/anthony/.ssh", "/root/.ssh",  owner: "root", group: "root"
-    server.vm.hostname = 'lovelycarte.com'
+    server.vm.synced_folder "/.ssh", "/root/.ssh",  owner: "root", group: "root"
+    server.vm.hostname = 'alice-gerfault.com'
     server.vm.network :forwarded_port, guest: 80, host: 8085
   end
 
   config.vm.define :wordpress_digital_ocean do |server|
-    server.vm.hostname = 'lovelycarte.com'
+    server.vm.hostname = 'alice-gerfault.com'
 
     server.vm.provider :digital_ocean do |provider, override|
       server.ssh.forward_agent = false

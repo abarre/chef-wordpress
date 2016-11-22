@@ -11,7 +11,6 @@ ssl_nginx_conf = """
   ssl_certificate_key #{thephonedressing_ssl_cert_key_path};
 """
 
-
 wordpress_site do
   database node["thephonedressing"]["database"]
   db_username node["thephonedressing"]["db_username"]

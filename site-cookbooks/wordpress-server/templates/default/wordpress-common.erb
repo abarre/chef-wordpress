@@ -22,6 +22,10 @@ location ~* \.(js|css|png|jpg|jpeg|gif|ico)$ {
   log_not_found off;
 }
 
+location /.well-known {
+  allow all;
+}
+
 # Prevent hidden files (beginning with a period) from being served
 location ~ /\. {
   access_log off;

@@ -54,3 +54,8 @@ vagrant up --provider=digital_ocean
 vagrant destroy
 vagrant provision
 ```
+
+```
+vagrant plugin install vagrant-managed-servers
+vagrant up wordpress_dedibox --provider=managed
+

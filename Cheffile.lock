@@ -96,6 +96,13 @@ GIT
       php-fpm (>= 0.0.0)
 
 GIT
+  remote: https://github.com/abarre/chef-certbot
+  ref: master
+  sha: 25ac6b2236f2fb366367d37d2ca770324b2403e5
+  specs:
+    certbot (0.6.0)
+
+GIT
   remote: https://github.com/jamesotron/cookbooks
   path: timezone
   ref: master
@@ -106,6 +113,7 @@ GIT
 DEPENDENCIES
   backup-manager (= 0.0.3)
   build-essential (= 2.0.6)
+  certbot (>= 0)
   chef-solo-search (>= 0)
   database (= 2.3.1)
   monit (= 0.7.1)

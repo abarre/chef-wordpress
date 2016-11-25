@@ -26,3 +26,16 @@ template '/etc/cron.daily/backup-manager' do
   mode '0755'
   action :create
 end
+
+# Configure certbot repository
+apt_repository "certbot" do
+  uri "http://ppa.launchpad.net/certbot/certbot/ubuntu"
+  distribution node['lsb']['codename']
+  components ["main"]
+  keyserver "keyserver.ubuntu.com"
+  key "75BCA694"
+  action :add
+end
+execute "apt-get update"
+
+include_recipe "certbot"

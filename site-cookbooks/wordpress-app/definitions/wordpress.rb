@@ -5,6 +5,8 @@ define :wordpress_site,
 	:path => "/var/www/wordpress",
 	:nginx_conf_name => "wordpress",
 	:server_name => "wordpress",
+	:root_domain => "wordpress",
+	:ssl => false,
 	:nginx_conf_code => nil do
 
 	include_recipe "database::mysql"
@@ -86,5 +88,37 @@ define :wordpress_site,
 	  host params[:server_name]
 	  root params[:path]
 	  code (params[:nginx_conf_code] || "") + pagespeed_conf
+	end
+
+	if params[:ssl]
+		certbot_self_signed_certificate params[:nginx_conf_name] do
+		  conf_name params[:nginx_conf_name]
+		  domains params[:server_name]
+		end
+
+		template "#{node['nginx']['dir']}/sites-available/#{params[:nginx_conf_name]}_ssl" do
+	    source   'ssl_nginx_vhost.conf.erb'
+	    owner    'root'
+	    group    'root'
+	    mode     00644
+	    cookbook "wordpress-app"
+	    variables(
+	      :server_name => params[:server_name],
+	      :cert_folder => "#{node[:certbot][:working_dir]}/live/#{params[:root_domain]}"
+	    )
+	    notifies :reload, "service[nginx]", :immediately                # when nginx is reloaded, it will point to the new valid certificates
+	  end
+
+	  nginx_site "#{params[:nginx_conf_name]}_ssl" do
+	    enable true
+	  end
+
+		certbot_certificate params[:nginx_conf_name] do
+		  conf_name params[:nginx_conf_name]
+		  domains params[:server_name]
+		  email "anthony.barre87@gmail.com"
+		  notifies :reload, "service[nginx]", :immediately                # when nginx is reloaded, it will point to the new valid certificates
+		end
+
 	end
 end

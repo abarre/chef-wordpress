@@ -34,3 +34,4 @@ default[:backup_manager][:upload_ftp_ttl] = '5'
 default[:backup_manager][:upload_ftp_destination] = '/'
 
 override[:backup_manager][:mysql_adminpass] = node[:mysql][:server_root_password]
+default[:certbot][:webroot_dir] = "/var/www"

@@ -27,6 +27,8 @@ wordpress_site do
   path node["alice-gerfault"]["path"]
   nginx_conf_name node["alice-gerfault"]["nginx_conf_name"]
   server_name node["alice-gerfault"]["server_name"]
+  root_domain node["alice-gerfault"]["root_domain"]
+  ssl node["alice-gerfault"]["ssl"]
 end
 
 if import_app

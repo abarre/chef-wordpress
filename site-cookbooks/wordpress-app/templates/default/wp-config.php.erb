@@ -24,6 +24,13 @@ define('WP_POST_REVISIONS', 10);
 define('WPLANG', 'fr_FR');
 define('WP_DEBUG', false);
 
+<% if @ssl %>
+define('FORCE_SSL_ADMIN', true);
+if ($_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https') {
+        $_SERVER['HTTPS']='on';
+}
+<% end %>
+
 if ( !defined('ABSPATH') )
     define('ABSPATH', dirname(__FILE__) . '/');
 

@@ -66,7 +66,8 @@ define :wordpress_site,
 	    :auth_salt        => node['wordpress']['salt']['auth'],
 	    :secure_auth_salt => node['wordpress']['salt']['secure_auth'],
 	    :logged_in_salt   => node['wordpress']['salt']['logged_in'],
-	    :nonce_salt       => node['wordpress']['salt']['nonce']
+	    :nonce_salt       => node['wordpress']['salt']['nonce'],
+	    :ssl              => params[:ssl]
 	  )
 	end
 
@@ -84,10 +85,20 @@ define :wordpress_site,
 		location ~ ^/pagespeed_global_admin { }
 	"""
 
+	ssl_conf = ""
+
+	if params[:ssl]
+		ssl_conf = """
+	  if ($http_x_forwarded_proto != \"https\") {
+		   return 301 https://$host$request_uri;
+		}
+	  """
+	end
+
 	wordpress_nginx_site params[:nginx_conf_name] do
 	  host params[:server_name]
 	  root params[:path]
-	  code (params[:nginx_conf_code] || "") + pagespeed_conf
+	  code (params[:nginx_conf_code] || "") + pagespeed_conf + ssl_conf
 	end
 
 	if params[:ssl]

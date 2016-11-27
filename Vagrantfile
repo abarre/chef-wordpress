@@ -28,6 +28,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   def provision_wordpress config
     wordpress_json = JSON.parse(Pathname(__FILE__).dirname.join('nodes', 'wordpress-server.json').read)
     config.vm.provision :chef_solo do |chef|
+      chef.custom_config_path = "Vagrantfile.chef"
       chef.cookbooks_path = ["site-cookbooks", "cookbooks"]
       chef.roles_path = "roles"
       chef.data_bags_path = "data_bags"

@@ -5,7 +5,10 @@
     "server_debian_password": "iloverandompasswordsbutthiswilldo"
   },
   "nginx": {
-  	"version" : "1.4.4"
+  	"version" : "1.10.2",
+    "openssl_source": {
+      "version": "1.0.2j"
+    }
   },
   "run_list": [
     "role[base]",

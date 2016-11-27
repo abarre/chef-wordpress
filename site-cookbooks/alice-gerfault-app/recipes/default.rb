@@ -44,6 +44,6 @@ file "/etc/cron.d/alice-gerfault_update_cache" do
   owner "root"
   group "root"
   mode "0644"
-  content "5,20,35,50 * * * * root /usr/bin/curl --silent 'http://alice-gerfault.com/?warm_cache=E8FTX5P84'\n"
+  content "5,20,35,50 * * * * root /usr/bin/curl --silent 'https://alice-gerfault.com/?warm_cache=E8FTX5P84'\n"
   action :create
 end

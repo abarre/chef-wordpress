@@ -19,7 +19,7 @@
 # limitations under the License.
 #
 
-override['nginx']['version'] = '1.10.2'
+override['nginx']['version'] = '1.10.3'
 default['nginx']['source']['modules'] = node['nginx']['source']['modules'] | ["nginx_with_pagespeed", "nginx::openssl_source"]
 default['nginx']['configure_flags'] = ["--with-http_v2_module", "--with-threads", "--with-file-aio"]
 

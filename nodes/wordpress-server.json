@@ -5,7 +5,7 @@
     "server_debian_password": "iloverandompasswordsbutthiswilldo"
   },
   "nginx": {
-  	"version" : "1.10.2",
+  	"version" : "1.10.3",
     "openssl_source": {
       "version": "1.0.2j"
     }

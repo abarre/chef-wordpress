@@ -91,14 +91,14 @@ define :wordpress_site,
 		ssl_conf = """
 		location /.well-known {
   		allow all;
-  		set $redirect "no";
+  		set $redirect \"no\";
  		}
 
 	  if ($http_x_forwarded_proto != \"https\") {
-		  set $redirect "yes_${redirect}";
+		  set $redirect \"yes_${redirect}\";
 	  }
 
-	  if ($redirect = "yes") {
+	  if ($redirect = \"yes\") {
 	  	return 301 https://$host$request_uri;
 	  }
 	  """

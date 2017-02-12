@@ -89,9 +89,18 @@ define :wordpress_site,
 
 	if params[:ssl]
 		ssl_conf = """
+		location /.well-known {
+  		allow all;
+  		set $redirect "no";
+ 		}
+
 	  if ($http_x_forwarded_proto != \"https\") {
-		   return 301 https://$host$request_uri;
-		}
+		  set $redirect "yes_${redirect}";
+	  }
+
+	  if ($redirect = "yes") {
+	  	return 301 https://$host$request_uri;
+	  }
 	  """
 	end
 

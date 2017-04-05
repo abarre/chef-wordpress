@@ -89,13 +89,14 @@ define :wordpress_site,
 
 	if params[:ssl]
 		ssl_conf = """
+		set $redirect \"\";
 		location /.well-known {
   		allow all;
   		set $redirect \"no\";
  		}
 
 	  if ($http_x_forwarded_proto != \"https\") {
-		  set $redirect \"yes_${redirect}\";
+		  set $redirect \"yes${redirect}\";
 	  }
 
 	  if ($redirect = \"yes\") {

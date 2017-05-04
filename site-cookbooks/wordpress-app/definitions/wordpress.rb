@@ -89,20 +89,26 @@ define :wordpress_site,
 
 	if params[:ssl]
 		ssl_conf = """
-		set $redirect \"\";
-		location /.well-known {
-  		allow all;
-  		set $redirect \"no\";
- 		}
-
-	  if ($http_x_forwarded_proto != \"https\") {
-		  set $redirect \"yes${redirect}\";
+	  # Necessary for Let's Encrypt Domain Name ownership validation
+	  location ^~ /.well-known {
+	    try_files $uri =404;
 	  }
-
-	  if ($redirect = \"yes\") {
-	  	return 301 https://$host$request_uri;
+	  location / {
+	  	add_header X-Debug $http_x_forwarded_proto;
+	  	if ($http_x_forwarded_proto != \"https\") {
+		  	return 301 https://$host$request_uri;
+		  }
+	    index index.php;
+			try_files $uri $uri/ /index.php?$args;
 	  }
 	  """
+	else
+		ssl_conf = """
+			location / {
+			  index index.php;
+			  try_files $uri $uri/ /index.php?$args;
+			}
+		"""
 	end
 
 	wordpress_nginx_site params[:nginx_conf_name] do

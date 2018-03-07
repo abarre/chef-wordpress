@@ -5,3 +5,6 @@ default['alice-gerfault']['path'] = "/var/www/alice-gerfault"
 default['alice-gerfault']['server_name'] = "www.alice-gerfault.com alice-gerfault.com"
 default['alice-gerfault']['root_domain'] = "alice-gerfault.com"
 default['alice-gerfault']['ssl'] = true
+
+
+override[:backup_manager][:mysql_adminpass] = node[:mysql][:server_root_password]

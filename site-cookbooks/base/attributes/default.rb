@@ -33,5 +33,7 @@ default[:backup_manager][:upload_ftp_purge] = 'true'
 default[:backup_manager][:upload_ftp_ttl] = '5'
 default[:backup_manager][:upload_ftp_destination] = '/'
 
+default[:backup_manager][:archive_method] = 'tarball mysql'
+
 override[:backup_manager][:mysql_adminpass] = node[:mysql][:server_root_password]
 default[:certbot][:webroot_dir] = "/var/www"

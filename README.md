@@ -59,3 +59,8 @@ vagrant provision
 vagrant plugin install vagrant-managed-servers
 vagrant up wordpress_dedibox --provider=managed
 
+# update a machine
+```
+vagrant provision wordpress_dedibox
+``
+
